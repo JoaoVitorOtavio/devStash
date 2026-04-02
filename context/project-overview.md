@@ -234,6 +234,13 @@ model ItemTag {
 - Syntax highlighting for code
 - Inspired by **Notion, Linear, Raycast**
 
+## Screenshots
+
+Refer to the screenshots below as a base for the dashboard UI. It doesnt have to be exactly. Use it as a reference.
+
+- @context/screenshots/dashboard-ui-drawer.png
+- @context/screenshots/dashboard-ui-main.png
+
 ### Layout
 
 - **Collapsible sidebar** with filters & collections
