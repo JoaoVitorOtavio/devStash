@@ -130,7 +130,7 @@ export const MOCK_ITEMS: Item[] = [
     tags: ['react', 'auth', 'hooks'],
     isFavorite: true,
     isPinned: true,
-    createdAt: 'Jan 15',
+    createdAt: '2024-03-28T10:00:00Z',
     content: '```typescript\nconst useAuth = () => {\n  // implementation\n};\n```'
   },
   {
@@ -142,7 +142,7 @@ export const MOCK_ITEMS: Item[] = [
     tags: ['typescript', 'api', 'patterns'],
     isFavorite: false,
     isPinned: true,
-    createdAt: 'Jan 12',
+    createdAt: '2024-03-27T15:30:00Z',
     content: '```typescript\nconst useAuth = () => {\n  // implementation\n};\n```'
   },
   {
@@ -154,8 +154,104 @@ export const MOCK_ITEMS: Item[] = [
     tags: ['docker', 'nextjs', 'devops'],
     isFavorite: true,
     isPinned: false,
-    createdAt: 'Jan 10',
+    createdAt: '2024-03-25T09:15:00Z',
     content: '```typescript\nconst useAuth = () => {\n  // implementation\n};\n```'
+  },
+  {
+    id: 'item_4',
+    title: 'Main App Layout Prompt',
+    description: 'AI prompt for generating a responsive dashboard layout',
+    typeId: 'type_prompt',
+    collectionId: 'coll_2',
+    tags: ['ai', 'ui', 'layout'],
+    isFavorite: false,
+    isPinned: false,
+    createdAt: '2024-03-24T14:20:00Z',
+    content: 'I need a responsive dashboard layout with a sidebar...'
+  },
+  {
+    id: 'item_5',
+    title: 'Tailwind V4 Setup Guide',
+    description: 'Step-by-step instructions for migrating to Tailwind V4',
+    typeId: 'type_note',
+    collectionId: 'coll_2',
+    tags: ['css', 'tailwind', 'frontend'],
+    isFavorite: true,
+    isPinned: true,
+    createdAt: '2024-03-22T11:45:00Z',
+    content: '1. Install tailwindcss\n2. Use @import "tailwindcss"'
+  },
+  {
+    id: 'item_6',
+    title: 'Git Squash Rebase Command',
+    description: 'Quick command to squash last 3 commits',
+    typeId: 'type_command',
+    collectionId: 'coll_3',
+    tags: ['git', 'workflow'],
+    isFavorite: false,
+    isPinned: false,
+    createdAt: '2024-03-21T16:50:00Z',
+    content: 'git rebase -i HEAD~3'
+  },
+  {
+    id: 'item_7',
+    title: 'Python List Comprehension',
+    description: 'Examples of common list comprehension patterns',
+    typeId: 'type_snippet',
+    collectionId: 'coll_4',
+    tags: ['python', 'patterns'],
+    isFavorite: false,
+    isPinned: false,
+    createdAt: '2024-03-20T13:10:00Z',
+    content: '[x for x in list if x > 10]'
+  },
+  {
+    id: 'item_8',
+    title: 'System Design Interview Checklist',
+    description: 'Key points to cover during system design interviews',
+    typeId: 'type_note',
+    collectionId: 'coll_5',
+    tags: ['interview', 'design'],
+    isFavorite: true,
+    isPinned: false,
+    createdAt: '2024-03-19T10:05:00Z',
+    content: '- Scalability\n- Availability\n- Consistency'
+  },
+  {
+    id: 'item_9',
+    title: 'OpenAI GPT-4o Prompting',
+    description: 'Best practices for better results with GPT-4o',
+    typeId: 'type_prompt',
+    collectionId: 'coll_6',
+    tags: ['ai', 'openai', 'llm'],
+    isFavorite: true,
+    isPinned: true,
+    createdAt: '2024-03-18T18:30:00Z',
+    content: 'Be concise, provide examples...'
+  },
+  {
+    id: 'item_10',
+    title: 'DevStash Branding Assets',
+    description: 'Logos and color palettes for the project',
+    typeId: 'type_file',
+    collectionId: undefined,
+    tags: ['design', 'branding'],
+    isFavorite: false,
+    isPinned: false,
+    createdAt: '2024-03-17T09:40:00Z',
+    content: undefined
+  },
+  {
+    id: 'item_11',
+    title: 'Next.js 15 App Router Hook',
+    description: 'New useSearchParams behavior in Next.js 15',
+    typeId: 'type_snippet',
+    collectionId: 'coll_1',
+    tags: ['nextjs', 'react'],
+    isFavorite: false,
+    isPinned: false,
+    createdAt: '2024-03-16T14:15:00Z',
+    content: 'const params = useSearchParams();'
   },
 ];
 
