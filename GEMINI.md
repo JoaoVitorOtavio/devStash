@@ -33,3 +33,14 @@ npm run start
 ```bash
 npm run lint
 ```
+
+## 🔒 Política de Commits (OBRIGATÓRIO)
+
+- NUNCA realize commits automaticamente.
+- Só é permitido fazer commit quando houver um pedido EXPLÍCITO do usuário.
+- Sempre confirme antes de commitar, mesmo que pareça óbvio.
+- Se houver qualquer dúvida, NÃO commitar.
+- Alterações de código devem permanecer locais até aprovação.
+
+Exemplo de comportamento esperado:
+"Você deseja que eu faça o commit dessas alterações?"
