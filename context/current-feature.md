@@ -1,23 +1,37 @@
-# Current Feature
+# Current Feature: Dashboard Collections Integration
+
+Replace dummy collection data in the dashboard with actual data from the Neon database using Prisma, ensuring dynamic styling and accurate collection statistics are displayed.
 
 ## Status
-Ready
+Completed
 
 ## Goals
-- [x] Create `prisma/seed.ts` script.
-- [x] Implement user seeding with hashed password (bcryptjs).
-- [x] Seed system item types (Snippet, Prompt, Command, etc.) with specific icons and colors.
-- [x] Seed sample collections: React Patterns, AI Workflows, DevOps, Terminal Commands, and Design Resources.
-- [x] Seed items for each collection matching the specified types and content.
-- [x] Verify seeding works with `npx prisma db seed`.
+- [x] Replace dummy collection data in the dashboard with actual data from the Neon database using Prisma.
+- [x] Create `src/lib/db/collections.ts` for collection-related data fetching functions.
+- [x] Fetch collections directly within the server component.
+- [x] Implement dynamic collection card border colors based on the most-used content type within each collection.
+- [x] Display icons representing all item types contained within a collection.
+- [x] Maintain the existing design and update collection stats display.
 
 ## Notes
-- Use `bcryptjs` for password hashing as per standards.
-- Icons should match Lucide React component names.
-- Ensure all seeded items are linked to the demo user.
-- System types must have `isSystem: true`.
+- Focus on the 6 recent collections in the main dashboard area.
+- Do not implement the item list beneath the collections yet.
 
 ## History
+- 2026-04-07: Refined Recent Collections UI:
+  - Added `title` attribute to collection descriptions for better hover readability.
+  - Repositioned item count to the bottom right using `absolute` positioning with "items:" prefix.
+  - Implemented dynamic hover border colors/gradients matching collection types using `mask-composite`.
+  - Optimized title and description layout to utilize full card width.
+- 2026-04-07: Completed Dashboard Collections Integration:
+  - Created `src/lib/db/collections.ts` and `src/lib/db/stats.ts`.
+  - Updated `RecentCollections` and `StatsCards` components to use real data.
+  - Successfully fetched and displayed collections and stats from Neon DB in `DashboardPage`.
+  - Implemented primary color logic for collection card borders.
+  - Verified build passes.
+- 2026-04-07: Started Dashboard Collections Integration:
+  - Transitioning from `mock-data.ts` to Prisma/Neon database.
+  - Setting up database fetching logic for collections.
 - 2026-04-07: Completed Database Seeding:
   - Created `prisma/seed.ts` matching `seed-spec.md`.
   - Installed `bcryptjs` and seeded demo user with hashed password.

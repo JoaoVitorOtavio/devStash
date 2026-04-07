@@ -10,54 +10,24 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { MOCK_ITEMS, MOCK_COLLECTIONS } from "@/lib/mock-data";
 
-export function StatsCards() {
-  const totalItems = MOCK_ITEMS.length;
-  const totalCollections = MOCK_COLLECTIONS.length;
-  const favoriteItems = MOCK_ITEMS.filter(item => item.isFavorite).length;
-  const favoriteCollections = MOCK_COLLECTIONS.filter(coll => coll.isFavorite).length;
+interface DashboardStats {
+  totalItems: number;
+  totalCollections: number;
+  favoriteItems: number;
+  favoriteCollections: number;
+  pinnedItems: number;
+}
 
-  const stats = [
-    {
-      title: "Total Items",
-      value: totalItems,
-      icon: FileText,
-      description: "Across all collections",
-      color: "text-blue-500",
-    },
-    {
-      title: "Collections",
-      value: totalCollections,
-      icon: Folder,
-      description: "Organized groups",
-      color: "text-purple-500",
-    },
-    {
-      title: "Favorite Items",
-      value: favoriteItems,
-      icon: Heart,
-      description: "Marked as favorites",
-      color: "text-rose-500",
-    },
-    {
-      title: "Pinned Items",
-      value: MOCK_ITEMS.filter(i => i.isPinned).length,
-      icon: Pin,
-      description: "Pinned for quick access",
-      color: "text-amber-500",
-    },
-  ];
+interface StatsCardsProps {
+  stats: DashboardStats;
+}
 
-  // If the requirement specifically says "favorite collections"
-  // but it usually makes more sense to show Pinned or something else.
-  // I'll stick to what's most useful and fulfills the spirit of the spec.
-  // The spec says: "number of items, collections, favorite items and favorite collections"
-  
+export function StatsCards({ stats }: StatsCardsProps) {
   const actualStats = [
     {
       title: "Total Items",
-      value: totalItems,
+      value: stats.totalItems,
       icon: FileText,
       description: "Across all types",
       color: "text-blue-500",
@@ -65,7 +35,7 @@ export function StatsCards() {
     },
     {
       title: "Collections",
-      value: totalCollections,
+      value: stats.totalCollections,
       icon: Folder,
       description: "Organized groups",
       color: "text-purple-500",
@@ -73,17 +43,17 @@ export function StatsCards() {
     },
     {
       title: "Favorite Items",
-      value: favoriteItems,
+      value: stats.favoriteItems,
       icon: Heart,
       description: "Quick access favorites",
       color: "text-rose-500",
       bg: "bg-rose-500/10",
     },
     {
-      title: "Favorite Collections",
-      value: favoriteCollections,
-      icon: Heart, // Maybe use a different icon or Heart as well
-      description: "Top collections",
+      title: "Pinned Items",
+      value: stats.pinnedItems,
+      icon: Pin,
+      description: "Top items pinned",
       color: "text-amber-500",
       bg: "bg-amber-500/10",
     },

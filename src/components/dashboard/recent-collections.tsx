@@ -1,13 +1,30 @@
 import { ChevronRight, Folder } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_COLLECTIONS, MOCK_ITEM_TYPES } from "@/lib/mock-data";
 import { getIcon } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 
-export function RecentCollections() {
-  // Take first 4 collections as "recent" for this prototype
-  const recentCollections = MOCK_COLLECTIONS.slice(0, 4);
+interface CollectionType {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
 
+interface CollectionProps {
+  id: string;
+  name: string;
+  description: string | null;
+  itemCount: number;
+  isFavorite: boolean;
+  primaryColor: string;
+  types: CollectionType[];
+}
+
+interface RecentCollectionsProps {
+  collections: CollectionProps[];
+}
+
+export function RecentCollections({ collections }: RecentCollectionsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -17,39 +34,64 @@ export function RecentCollections() {
         </button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        {recentCollections.map((collection) => {
-          const firstType = MOCK_ITEM_TYPES.find(t => t.id === collection.types[0]);
-          const borderColor = firstType?.color || 'var(--color-primary)';
+        {collections.map((collection) => {
+          // Generate gradient string from type colors
+          const typeColors = collection.types.map(t => t.color);
+          const gradient = typeColors.length > 1 
+            ? `linear-gradient(to bottom, ${typeColors.join(', ')})`
+            : typeColors[0] || 'var(--color-primary)';
 
           return (
             <Card 
               key={collection.id} 
-              className="group cursor-pointer hover:border-primary/50 transition-colors border-l-4"
-              style={{ borderLeftColor: borderColor }}
+              className="group cursor-pointer transition-all duration-300 relative overflow-hidden border-transparent hover:shadow-md"
             >
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
+              {/* Hover Border Gradient/Color Overlay */}
+              <div 
+                className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{ 
+                  padding: '1px',
+                  background: gradient,
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                }}
+              />
+
+              {/* Custom Left Border Gradient */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-1" 
+                style={{ background: gradient }}
+              />
+
+              {/* Absolute Item Count Badge */}
+              <div className="absolute bottom-3 right-3 text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded shadow-sm z-10">
+                items: {collection.itemCount}
+              </div>
+              
+              <CardHeader className="flex flex-row items-start space-y-0 pb-2 pl-6 pr-6">
+                <div className="flex items-center gap-3 w-full min-w-0">
+                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                     <Folder className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
-                    <CardTitle className="text-base">{collection.name}</CardTitle>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{collection.description}</p>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base truncate">{collection.name}</CardTitle>
+                    <p 
+                      className="text-xs text-muted-foreground line-clamp-1" 
+                      title={collection.description || ""}
+                    >
+                      {collection.description}
+                    </p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="font-normal shrink-0">
-                  {collection.itemCount}
-                </Badge>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pl-6">
                 <div className="flex items-center gap-2 mt-2">
-                  {collection.types.slice(0, 4).map((typeId) => {
-                    const type = MOCK_ITEM_TYPES.find(t => t.id === typeId);
-                    if (!type) return null;
+                  {collection.types.slice(0, 4).map((type) => {
                     const Icon = getIcon(type.icon);
                     return (
                       <div 
-                        key={typeId} 
+                        key={type.id} 
                         className="h-6 w-6 rounded-md flex items-center justify-center bg-muted"
                         title={type.name}
                       >
