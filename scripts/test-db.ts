@@ -2,42 +2,99 @@ import 'dotenv/config';
 import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  console.log('--- Database Connection Test ---');
+  console.log('--- Database Connection & Demo Data Test ---');
   
   try {
-    // Attempt to count users as a simple check
+    // 1. Connection Check
     console.log('⏳ Connecting to database...');
     const userCount = await prisma.user.count();
-    
     console.log('✅ Connection successful!');
-    console.log(`📊 Number of users in database: ${userCount}`);
+    console.log(`📊 Total users in database: ${userCount}`);
 
-    // Try to list first 3 users (if any)
-    const users = await prisma.user.findMany({
-      take: 3,
-      select: {
-        id: true,
-        email: true,
+    // 2. Fetch Demo User
+    const demoUser = await prisma.user.findUnique({
+      where: { email: 'demo@devstash.io' },
+      include: {
+        collections: {
+          include: {
+            _count: {
+              select: { items: true }
+            }
+          }
+        },
+        itemTypes: {
+          where: { isSystem: true }
+        }
       }
     });
 
-    if (users.length > 0) {
-      console.log('👤 Sample users:');
-      users.forEach(u => console.log(`  - ${u.email} (${u.id})`));
-    } else {
-      console.log('ℹ️ No users found in the database.');
+    if (!demoUser) {
+      console.log('❌ Demo user "demo@devstash.io" not found!');
+      return;
     }
 
+    console.log('\n👤 Demo User:');
+    console.log(`  - Name: ${demoUser.name}`);
+    console.log(`  - Email: ${demoUser.email}`);
+    console.log(`  - Pro Status: ${demoUser.isPro ? '✅ Pro' : '❌ Free'}`);
+
+    // 3. Collections Summary
+    console.log('\n📂 Collections:');
+    if (demoUser.collections.length > 0) {
+      demoUser.collections.forEach(c => {
+        console.log(`  - [${c.id}] ${c.name} (${c._count.items} items)${c.isFavorite ? ' ⭐' : ''}`);
+      });
+    } else {
+      console.log('  - No collections found.');
+    }
+
+    // 4. System Types
+    const systemTypes = await prisma.itemType.findMany({
+      where: { isSystem: true }
+    });
+    console.log('\n🛠️ System Item Types:');
+    systemTypes.forEach(t => {
+      console.log(`  - ${t.name} (${t.icon}) - ${t.color}`);
+    });
+
+    // 5. Recent Items (last 5)
+    const recentItems = await prisma.item.findMany({
+      where: { userId: demoUser.id },
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        type: true,
+        collection: true,
+      }
+    });
+
+    console.log('\n📝 Most Recent Items:');
+    if (recentItems.length > 0) {
+      recentItems.forEach(item => {
+        const typeIcon = item.type.icon;
+        const collName = item.collection?.name || 'Uncategorized';
+        console.log(`  - [${item.type.name.toUpperCase()}] ${item.title} (in: ${collName})`);
+      });
+    } else {
+      console.log('  - No items found.');
+    }
+
+    // 6. Summary Stats
+    const totalItems = await prisma.item.count({ where: { userId: demoUser.id } });
+    console.log(`\n📈 Total Items for Demo User: ${totalItems}`);
+
   } catch (error) {
-    console.error('❌ Connection failed!');
+    console.error('\n❌ Error during test:');
     if (error instanceof Error) {
-      console.error(`Error message: ${error.message}`);
+      console.error(`Message: ${error.message}`);
+      // Log stack for deeper debugging if needed
+      // console.error(error.stack);
     } else {
       console.error(error);
     }
   } finally {
     await prisma.$disconnect();
-    console.log('--- Test Finished ---');
+    console.log('\n--- Test Finished ---');
   }
 }
 

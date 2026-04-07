@@ -1,6 +1,7 @@
 import { PrismaClient } from '../src/generated/prisma/client';
 import { Pool } from '@neondatabase/serverless';
 import { PrismaNeon } from '@prisma/adapter-neon';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -14,252 +15,278 @@ const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Starting database seeding...');
 
-  // Create Mock User
+  // 1. Create Demo User
+  const hashedPassword = await bcrypt.hash('12345678', 12);
   const user = await prisma.user.upsert({
     where: { email: 'demo@devstash.io' },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: 'Demo User',
+      isPro: false,
+      emailVerified: new Date(),
+    },
     create: {
-      id: 'user_1',
-      name: 'John Doe',
       email: 'demo@devstash.io',
-      image: 'https://github.com/shadcn.png',
-      isPro: true,
+      name: 'Demo User',
+      password: hashedPassword,
+      isPro: false,
+      emailVerified: new Date(),
     },
   });
 
   console.log(`✅ User created: ${user.email}`);
 
-  // Create Item Types
-  const itemTypes = [
-    { id: 'type_snippet', name: 'Snippets', icon: 'code', color: '#3b82f6', isSystem: true },
-    { id: 'type_prompt', name: 'Prompts', icon: 'sparkles', color: '#a855f7', isSystem: true },
-    { id: 'type_command', name: 'Commands', icon: 'terminal', color: '#f97316', isSystem: true },
-    { id: 'type_note', name: 'Notes', icon: 'file-text', color: '#eab308', isSystem: true },
-    { id: 'type_file', name: 'Files', icon: 'file', color: '#94a3b8', isSystem: true },
-    { id: 'type_image', name: 'Images', icon: 'image', color: '#ec4899', isSystem: true },
-    { id: 'type_link', name: 'Links', icon: 'link', color: '#10b981', isSystem: true },
+  // 2. Create System Item Types
+  const systemTypes = [
+    { name: 'snippet', icon: 'Code', color: '#3b82f6' },
+    { name: 'prompt', icon: 'Sparkles', color: '#8b5cf6' },
+    { name: 'command', icon: 'Terminal', color: '#f97316' },
+    { name: 'note', icon: 'StickyNote', color: '#fde047' },
+    { name: 'file', icon: 'File', color: '#6b7280' },
+    { name: 'image', icon: 'Image', color: '#ec4899' },
+    { name: 'link', icon: 'Link', color: '#10b981' },
   ];
 
-  for (const type of itemTypes) {
-    await prisma.itemType.upsert({
-      where: { id: type.id },
-      update: {},
+  const typeMap: Record<string, string> = {};
+
+  for (const typeData of systemTypes) {
+    const type = await prisma.itemType.upsert({
+      where: { 
+        id: `type_${typeData.name}`, // Fixed IDs for easier reference
+      },
+      update: {
+        icon: typeData.icon,
+        color: typeData.color,
+      },
       create: {
-        ...type,
-        userId: user.id,
+        id: `type_${typeData.name}`,
+        name: typeData.name,
+        icon: typeData.icon,
+        color: typeData.color,
+        isSystem: true,
       },
     });
+    typeMap[typeData.name] = type.id;
   }
-  console.log('✅ Item types created');
+  console.log('✅ System item types created');
 
-  // Create Collections
-  const collections = [
-    {
-      id: 'coll_1',
+  // 3. Collections & Items
+  
+  // React Patterns
+  const reactColl = await prisma.collection.upsert({
+    where: { id: 'coll_react_patterns' },
+    update: {},
+    create: {
+      id: 'coll_react_patterns',
       name: 'React Patterns',
-      description: 'Common React patterns and hooks',
+      description: 'Reusable React patterns and hooks',
+      userId: user.id,
       isFavorite: true,
-      createdAt: new Date('2024-01-06'),
+    },
+  });
+
+  const reactItems = [
+    {
+      title: 'useDebounce Hook',
+      description: 'A custom hook to debounce value changes',
+      content: '```typescript\nimport { useState, useEffect } from "react";\n\nexport function useDebounce<T>(value: T, delay: number): T {\n  const [debouncedValue, setDebouncedValue] = useState<T>(value);\n\n  useEffect(() => {\n    const timer = setTimeout(() => setDebouncedValue(value), delay);\n    return () => clearTimeout(timer);\n  }, [value, delay]);\n\n  return debouncedValue;\n}\n```',
+      language: 'typescript',
+      typeId: typeMap['snippet'],
     },
     {
-      id: 'coll_2',
-      name: 'Context Files',
-      description: 'AI context files for projects',
-      isFavorite: true,
-      createdAt: new Date('2024-01-06'),
+      title: 'Context Provider Pattern',
+      description: 'Standard implementation of React Context with custom hook',
+      content: '```tsx\nimport { createContext, useContext, ReactNode } from "react";\n\ninterface MyContextType { /* ... */ }\nconst MyContext = createContext<MyContextType | undefined>(undefined);\n\nexport function MyProvider({ children }: { children: ReactNode }) {\n  return <MyContext.Provider value={{ /* ... */ }}>{children}</MyContext.Provider>;\n}\n\nexport function useMyContext() {\n  const context = useContext(MyContext);\n  if (!context) throw new Error("useMyContext must be used within MyProvider");\n  return context;\n}\n```',
+      language: 'tsx',
+      typeId: typeMap['snippet'],
     },
     {
-      id: 'coll_3',
-      name: 'Git Commands',
-      description: 'Frequently used git commands',
-      isFavorite: true,
-      createdAt: new Date('2024-01-06'),
-    },
-    {
-      id: 'coll_4',
-      name: 'Python Snippets',
-      description: 'Useful Python code snippets',
-      isFavorite: false,
-      createdAt: new Date('2024-01-06'),
-    },
-    {
-      id: 'coll_5',
-      name: 'Interview Prep',
-      description: 'Technical interview preparation',
-      isFavorite: false,
-      createdAt: new Date('2024-01-06'),
-    },
-    {
-      id: 'coll_6',
-      name: 'AI Prompts',
-      description: 'Curated AI prompts for coding',
-      isFavorite: false,
-      createdAt: new Date('2024-01-06'),
+      title: 'Utility: cn Helper',
+      description: 'Tailwind class merging utility',
+      content: '```typescript\nimport { type ClassValue, clsx } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}\n```',
+      language: 'typescript',
+      typeId: typeMap['snippet'],
     },
   ];
 
-  for (const coll of collections) {
-    await prisma.collection.upsert({
-      where: { id: coll.id },
-      update: {},
-      create: {
-        ...coll,
-        userId: user.id,
-      },
-    });
-  }
-  console.log('✅ Collections created');
-
-  // Create Items
-  const items = [
-    {
-      id: 'item_1',
-      title: 'useAuth Hook',
-      description: 'Custom authentication hook for React applications',
-      typeId: 'type_snippet',
-      collectionId: 'coll_1',
-      isFavorite: true,
-      isPinned: true,
-      createdAt: new Date('2024-03-28T10:00:00Z'),
-      content: '```typescript\nconst useAuth = () => {\n  // implementation\n};\n```',
-      contentType: 'text',
-    },
-    {
-      id: 'item_2',
-      title: 'API Error Handling Pattern',
-      description: 'Fetch wrapper with exponential backoff retry logic',
-      typeId: 'type_snippet',
-      collectionId: 'coll_1',
-      isFavorite: false,
-      isPinned: true,
-      createdAt: new Date('2024-03-27T15:30:00Z'),
-      content: '```typescript\nconst useAuth = () => {\n  // implementation\n};\n```',
-      contentType: 'text',
-    },
-    {
-      id: 'item_3',
-      title: 'Docker Compose for Next.js',
-      description: 'Full stack setup with PostgreSQL and Redis',
-      typeId: 'type_command',
-      collectionId: 'coll_3',
-      isFavorite: true,
-      isPinned: false,
-      createdAt: new Date('2024-03-25T09:15:00Z'),
-      content: '```typescript\nconst useAuth = () => {\n  // implementation\n};\n```',
-      contentType: 'text',
-    },
-    {
-      id: 'item_4',
-      title: 'Main App Layout Prompt',
-      description: 'AI prompt for generating a responsive dashboard layout',
-      typeId: 'type_prompt',
-      collectionId: 'coll_2',
-      isFavorite: false,
-      isPinned: false,
-      createdAt: new Date('2024-03-24T14:20:00Z'),
-      content: 'I need a responsive dashboard layout with a sidebar...',
-      contentType: 'text',
-    },
-    {
-      id: 'item_5',
-      title: 'Tailwind V4 Setup Guide',
-      description: 'Step-by-step instructions for migrating to Tailwind V4',
-      typeId: 'type_note',
-      collectionId: 'coll_2',
-      isFavorite: true,
-      isPinned: true,
-      createdAt: new Date('2024-03-22T11:45:00Z'),
-      content: '1. Install tailwindcss\n2. Use @import "tailwindcss"',
-      contentType: 'text',
-    },
-    {
-      id: 'item_6',
-      title: 'Git Squash Rebase Command',
-      description: 'Quick command to squash last 3 commits',
-      typeId: 'type_command',
-      collectionId: 'coll_3',
-      isFavorite: false,
-      isPinned: false,
-      createdAt: new Date('2024-03-21T16:50:00Z'),
-      content: 'git rebase -i HEAD~3',
-      contentType: 'text',
-    },
-    {
-      id: 'item_7',
-      title: 'Python List Comprehension',
-      description: 'Examples of common list comprehension patterns',
-      typeId: 'type_snippet',
-      collectionId: 'coll_4',
-      isFavorite: false,
-      isPinned: false,
-      createdAt: new Date('2024-03-20T13:10:00Z'),
-      content: '[x for x in list if x > 10]',
-      contentType: 'text',
-    },
-    {
-      id: 'item_8',
-      title: 'System Design Interview Checklist',
-      description: 'Key points to cover during system design interviews',
-      typeId: 'type_note',
-      collectionId: 'coll_5',
-      isFavorite: true,
-      isPinned: false,
-      createdAt: new Date('2024-03-19T10:05:00Z'),
-      content: '- Scalability\n- Availability\n- Consistency',
-      contentType: 'text',
-    },
-    {
-      id: 'item_9',
-      title: 'OpenAI GPT-4o Prompting',
-      description: 'Best practices for better results with GPT-4o',
-      typeId: 'type_prompt',
-      collectionId: 'coll_6',
-      isFavorite: true,
-      isPinned: true,
-      createdAt: new Date('2024-03-18T18:30:00Z'),
-      content: 'Be concise, provide examples...',
-      contentType: 'text',
-    },
-    {
-      id: 'item_10',
-      title: 'DevStash Branding Assets',
-      description: 'Logos and color palettes for the project',
-      typeId: 'type_file',
-      collectionId: undefined,
-      isFavorite: false,
-      isPinned: false,
-      createdAt: new Date('2024-03-17T09:40:00Z'),
-      content: null,
-      contentType: 'file',
-    },
-    {
-      id: 'item_11',
-      title: 'Next.js 15 App Router Hook',
-      description: 'New useSearchParams behavior in Next.js 15',
-      typeId: 'type_snippet',
-      collectionId: 'coll_1',
-      isFavorite: false,
-      isPinned: false,
-      createdAt: new Date('2024-03-16T14:15:00Z'),
-      content: 'const params = useSearchParams();',
-      contentType: 'text',
-    },
-  ];
-
-  for (const item of items) {
-    await prisma.item.upsert({
-      where: { id: item.id },
-      update: {},
-      create: {
+  for (const item of reactItems) {
+    await prisma.item.create({
+      data: {
         ...item,
         userId: user.id,
+        collectionId: reactColl.id,
+        contentType: 'text',
       },
     });
   }
-  console.log('✅ Items created');
 
+  // AI Workflows
+  const aiColl = await prisma.collection.upsert({
+    where: { id: 'coll_ai_workflows' },
+    update: {},
+    create: {
+      id: 'coll_ai_workflows',
+      name: 'AI Workflows',
+      description: 'AI prompts and workflow automations',
+      userId: user.id,
+      isFavorite: true,
+    },
+  });
+
+  const aiItems = [
+    {
+      title: 'Code Review Prompt',
+      description: 'Comprehensive prompt for AI code reviews',
+      content: 'You are an expert senior software engineer. Review the following code for: \n1. Performance bottlenecks\n2. Security vulnerabilities\n3. Clean code principles\n4. Potential bugs\n\nCode:\n{{CODE}}',
+      typeId: typeMap['prompt'],
+    },
+    {
+      title: 'Documentation Generation',
+      description: 'Prompt to generate JSDoc and README content',
+      content: 'Based on this TypeScript interface/class, generate comprehensive JSDoc comments and a brief usage example for a README.md file.',
+      typeId: typeMap['prompt'],
+    },
+    {
+      title: 'Refactoring Assistance',
+      description: 'Prompt for refactoring complex functions',
+      content: 'Refactor the following function to improve readability and reduce cognitive complexity. Maintain the same behavior and include unit tests for the new implementation.',
+      typeId: typeMap['prompt'],
+    },
+  ];
+
+  for (const item of aiItems) {
+    await prisma.item.create({
+      data: {
+        ...item,
+        userId: user.id,
+        collectionId: aiColl.id,
+        contentType: 'text',
+      },
+    });
+  }
+
+  // DevOps
+  const devopsColl = await prisma.collection.upsert({
+    where: { id: 'coll_devops' },
+    update: {},
+    create: {
+      id: 'coll_devops',
+      name: 'DevOps',
+      description: 'Infrastructure and deployment resources',
+      userId: user.id,
+    },
+  });
+
+  await prisma.item.create({
+    data: {
+      title: 'Docker Compose Setup',
+      description: 'Basic docker-compose for Node.js and Postgres',
+      content: '```yaml\nversion: "3.8"\nservices:\n  db:\n    image: postgres:15-alpine\n    ports:\n      - "5432:5432"\n  app:\n    build: .\n    ports:\n      - "3000:3000"\n```',
+      typeId: typeMap['snippet'],
+      userId: user.id,
+      collectionId: devopsColl.id,
+      contentType: 'text',
+    },
+  });
+
+  await prisma.item.create({
+    data: {
+      title: 'Deployment Script',
+      description: 'Simple bash script for production deployment',
+      content: '#!/bin/bash\ngit pull origin main\nnpm install\nnpm run build\npm2 restart all',
+      typeId: typeMap['command'],
+      userId: user.id,
+      collectionId: devopsColl.id,
+      contentType: 'text',
+    },
+  });
+
+  await prisma.item.create({
+    data: {
+      title: 'Neon Documentation',
+      url: 'https://neon.tech/docs/introduction',
+      typeId: typeMap['link'],
+      userId: user.id,
+      collectionId: devopsColl.id,
+      contentType: 'text',
+    },
+  });
+
+  await prisma.item.create({
+    data: {
+      title: 'Cloudflare R2 Docs',
+      url: 'https://developers.cloudflare.com/r2/',
+      typeId: typeMap['link'],
+      userId: user.id,
+      collectionId: devopsColl.id,
+      contentType: 'text',
+    },
+  });
+
+  // Terminal Commands
+  const termColl = await prisma.collection.upsert({
+    where: { id: 'coll_terminal' },
+    update: {},
+    create: {
+      id: 'coll_terminal',
+      name: 'Terminal Commands',
+      description: 'Useful shell commands for everyday development',
+      userId: user.id,
+    },
+  });
+
+  const termItems = [
+    { title: 'Git: Undo Last Commit', content: 'git reset --soft HEAD~1', typeId: typeMap['command'] },
+    { title: 'Docker: Clean All', content: 'docker system prune -a --volumes', typeId: typeMap['command'] },
+    { title: 'Process: Kill on Port', content: 'lsof -ti:3000 | xargs kill -9', typeId: typeMap['command'] },
+    { title: 'NPM: Force Clean Cache', content: 'npm cache clean --force', typeId: typeMap['command'] },
+  ];
+
+  for (const item of termItems) {
+    await prisma.item.create({
+      data: {
+        ...item,
+        userId: user.id,
+        collectionId: termColl.id,
+        contentType: 'text',
+      },
+    });
+  }
+
+  // Design Resources
+  const designColl = await prisma.collection.upsert({
+    where: { id: 'coll_design' },
+    update: {},
+    create: {
+      id: 'coll_design',
+      name: 'Design Resources',
+      description: 'UI/UX resources and references',
+      userId: user.id,
+    },
+  });
+
+  const designLinks = [
+    { title: 'Tailwind CSS v4 Docs', url: 'https://tailwindcss.com/docs' },
+    { title: 'Shadcn UI', url: 'https://ui.shadcn.com' },
+    { title: 'Lucide Icons', url: 'https://lucide.dev' },
+    { title: 'Figma Community', url: 'https://figma.com/community' },
+  ];
+
+  for (const link of designLinks) {
+    await prisma.item.create({
+      data: {
+        ...link,
+        userId: user.id,
+        collectionId: designColl.id,
+        typeId: typeMap['link'],
+        contentType: 'text',
+      },
+    });
+  }
+
+  console.log('✅ Collections and items created');
   console.log('✨ Seeding finished successfully!');
 }
 
