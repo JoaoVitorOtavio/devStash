@@ -1,25 +1,18 @@
-# Current Feature: Dashboard Items Integration
+# Current Feature: [Feature Name]
 
-Replace the dummy item data displayed in the main area of the dashboard (right side) with actual data from the Neon database using Prisma. This includes both pinned and recent items, ensuring icons and styles are derived from the database-defined item types.
+[Description]
 
 ## Status
-Completed
+Planned
 
 ## Goals
-- [x] Create `src/lib/db/items.ts` with data fetching functions for pinned and recent items.
-- [x] Fetch items directly within the dashboard server component.
-- [x] Update `PinnedItems` component to use real data and hide if empty.
-- [x] Update `RecentItems` component to display actual data from the database.
-- [x] Ensure item card icons and borders are dynamically derived from the item type.
-- [x] Display item type tags and metadata consistently with the existing design.
+- [ ] Task 1
 
 ## Notes
-- If no pinned items exist, the section should not be displayed.
-- Data should be fetched using Prisma from the Neon database.
-- Reference `src/lib/mock-data.ts` for current UI structure but move away from it.
+- Note 1
 
 ## History
-- 2026-04-13: Completed Dashboard Items Integration:
+- 2026-04-16: Completed Dashboard Items Integration:
   - Replaced dummy item data (pinned and recent) with Prisma/Neon DB data.
   - Implemented dynamic Sidebar with real user profile, item types, and collections.
   - Created `src/lib/db/user.ts` for profile fetching.
