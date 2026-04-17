@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { 
-  ChevronRight, 
-  MoreHorizontal, 
-  Plus, 
-  Star, 
+import {
+  ChevronRight,
+  MoreHorizontal,
+  Plus,
+  Star,
   User as UserIcon,
   LogOut,
   Settings,
@@ -42,15 +42,42 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MOCK_USER, MOCK_ITEM_TYPES, MOCK_COLLECTIONS } from "@/lib/mock-data";
 import { getIcon } from "@/lib/icons";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const favoriteCollections = MOCK_COLLECTIONS.filter((c) => c.isFavorite);
-  const recentCollections = MOCK_COLLECTIONS.slice(0, 3);
+interface ItemType {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  count: number;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  isFavorite: boolean;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string | null;
+  image: string;
+  isPro: boolean;
+}
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  itemTypes: ItemType[];
+  collections: Collection[];
+  user: UserProfile;
+}
+
+export function AppSidebar({ itemTypes, collections, user, ...props }: AppSidebarProps) {
+  const favoriteCollections = collections.filter((c) => c.isFavorite).slice(0, 3);
+  const recentCollections = collections.slice(0, 3);
 
   return (
-    <Sidebar variant="inset" collapsible="icon" {...props}>
+    <Sidebar variant="inset" collapsible="icon" className="h-svh" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
@@ -74,13 +101,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel>Knowledge Base</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {MOCK_ITEM_TYPES.map((type) => {
-                const Icon = getIcon(type.icon);
+              {itemTypes.map((type) => {
+                const Icon = getIcon(type.icon || 'file');
                 return (
                   <SidebarMenuItem key={type.id}>
                     <SidebarMenuButton asChild tooltip={type.name}>
-                      <Link href={`/items/${type.id.replace("type_", "")}`}>
-                        <Icon className="size-4" style={{ color: type.color }} />
+                      <Link href={`/items/${type.id}`}>
+                        <Icon className="size-4" style={{ color: type.color || undefined }} />
                         <span>{type.name}</span>
                         <span className="ml-auto text-xs text-muted-foreground">{type.count}</span>
                       </Link>
@@ -92,80 +119,104 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Favorites</SidebarGroupLabel>
-          <SidebarMenu>
-            {favoriteCollections.map((collection) => (
-              <SidebarMenuItem key={collection.id}>
-                <SidebarMenuButton asChild tooltip={collection.name}>
-                  <Link href={`/collections/${collection.id}`}>
-                    <Star className="size-4 text-yellow-500" />
-                    <span>{collection.name}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel className="flex items-center justify-between">
+            <span>Favorite Collections</span>
+            <Plus className="h-3 w-3 cursor-pointer hover:text-primary" />
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {favoriteCollections.map((collection) => (
+                <SidebarMenuItem key={collection.id}>
+                  <SidebarMenuButton asChild>
+                    <Link href={`/collections/${collection.id}`}>
+                      <Star className="size-4 fill-amber-500 text-amber-500" />
+                      <span>{collection.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              {favoriteCollections.length === 0 && (
+                <div className="px-3 py-2 text-xs text-muted-foreground italic">No favorites yet</div>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel className="flex items-center justify-between">
-            <span>Recent Collections</span>
-            <button className="text-muted-foreground hover:text-foreground">
-              <Plus className="size-3" />
-            </button>
+            <span>Recent</span>
           </SidebarGroupLabel>
-          <SidebarMenu>
-            {recentCollections.map((collection) => (
-              <SidebarMenuItem key={collection.id}>
-                <SidebarMenuButton asChild tooltip={collection.name}>
-                  <Link href={`/collections/${collection.id}`}>
-                    <ChevronRight className="size-4" />
-                    <span>{collection.name}</span>
-                  </Link>
-                </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction>
-                      <MoreHorizontal />
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem>Edit Collection</DropdownMenuItem>
-                    <DropdownMenuItem>Share Collection</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {recentCollections.map((collection) => (
+                <SidebarMenuItem key={collection.id}>
+                  <SidebarMenuButton asChild>
+                    <Link href={`/collections/${collection.id}`}>
+                      <ChevronRight className="size-4" />
+                      <span>{collection.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="start">
+                      <DropdownMenuItem>
+                        <span>Edit Collection</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <span>Share</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive">
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            {user.isPro ? (
+              <div className="px-3 py-2 mb-2 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 group-data-[collapsible=icon]:hidden">
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Pro Plan</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-tight">AI features and unlimited storage active.</p>
+              </div>
+            ) : (
+              <SidebarMenuButton className="mb-2 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary group-data-[collapsible=icon]:hidden">
+                <Sparkles className="h-4 w-4" />
+                <span>Upgrade to Pro</span>
+              </SidebarMenuButton>
+            )}
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size="lg"
-                  tooltip={MOCK_USER.name}
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={MOCK_USER.image} alt={MOCK_USER.name} />
-                    <AvatarFallback className="rounded-lg">
-                      {MOCK_USER.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarImage src={user.image} alt={user.name} />
+                    <AvatarFallback className="rounded-lg">{user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{MOCK_USER.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{MOCK_USER.email}</span>
+                  <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
                   </div>
-                  {MOCK_USER.isPro && (
-                    <Badge variant="secondary" className="ml-auto text-[10px] px-1 h-4">Pro</Badge>
-                  )}
-                  <ChevronRight className="ml-auto size-4" />
+                  <MoreHorizontal className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -177,38 +228,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={MOCK_USER.image} alt={MOCK_USER.name} />
-                      <AvatarFallback className="rounded-lg">
-                        {MOCK_USER.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
+                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarFallback className="rounded-lg">{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{MOCK_USER.name}</span>
-                      <span className="truncate text-xs text-muted-foreground">{MOCK_USER.email}</span>
+                      <span className="truncate font-semibold">{user.name}</span>
+                      <span className="truncate text-xs text-muted-foreground">{user.email}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <Sparkles className="mr-2 size-4" />
+                    <Sparkles className="mr-2 h-4 w-4" />
                     Upgrade to Pro
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <UserIcon className="mr-2 size-4" />
+                    <UserIcon className="mr-2 h-4 w-4" />
                     Account
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Settings className="mr-2 size-4" />
+                    <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <LogOut className="mr-2 size-4" />
+                  <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>

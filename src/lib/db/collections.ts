@@ -70,3 +70,24 @@ export async function getRecentCollections(userEmail: string, limit = 4) {
     };
   });
 }
+
+export async function getAllCollections(userEmail: string) {
+  const user = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { id: true }
+  });
+
+  if (!user) return [];
+
+  const collections = await prisma.collection.findMany({
+    where: { userId: user.id },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  return collections.map(collection => ({
+    id: collection.id,
+    name: collection.name,
+    isFavorite: collection.isFavorite,
+    updatedAt: collection.updatedAt
+  }));
+}

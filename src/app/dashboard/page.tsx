@@ -4,18 +4,21 @@ import { PinnedItems } from "@/components/dashboard/pinned-items";
 import { RecentItems } from "@/components/dashboard/recent-items";
 import { getRecentCollections } from "@/lib/db/collections";
 import { getDashboardStats } from "@/lib/db/stats";
+import { getPinnedItems, getRecentItems } from "@/lib/db/items";
 
 export default async function DashboardPage() {
   // TODO: Get email from session after implementing auth
   const userEmail = "demo@devstash.io";
   
-  const [recentCollections, stats] = await Promise.all([
+  const [recentCollections, stats, pinnedItems, recentItems] = await Promise.all([
     getRecentCollections(userEmail),
     getDashboardStats(userEmail),
+    getPinnedItems(userEmail),
+    getRecentItems(userEmail),
   ]);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto" style={{ marginTop: 70 }}>
       <div className="flex flex-col gap-1">
         <h2 className="text-3xl font-bold tracking-tight">Welcome back!</h2>
         <p className="text-muted-foreground">
@@ -27,8 +30,8 @@ export default async function DashboardPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
         <div className="space-y-8">
-          <PinnedItems />
-          <RecentItems />
+          <PinnedItems items={pinnedItems} />
+          <RecentItems items={recentItems} />
         </div>
         <div className="space-y-8">
           <RecentCollections collections={recentCollections} />

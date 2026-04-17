@@ -1,11 +1,30 @@
 import { ChevronRight, Pin, Star } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_ITEMS, MOCK_ITEM_TYPES } from "@/lib/mock-data";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { getIcon } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 
-export function PinnedItems() {
-  const pinnedItems = MOCK_ITEMS.filter(item => item.isPinned).slice(0, 4);
+interface PinnedItem {
+  id: string;
+  title: string;
+  description: string | null;
+  type: {
+    id: string;
+    name: string;
+    icon: string | null;
+    color: string | null;
+  };
+  tags: string[];
+  isFavorite: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+}
+
+interface PinnedItemsProps {
+  items: PinnedItem[];
+}
+
+export function PinnedItems({ items }: PinnedItemsProps) {
+  if (items.length === 0) return null;
 
   return (
     <div className="space-y-4">
@@ -19,21 +38,31 @@ export function PinnedItems() {
         </button>
       </div>
       <div className="grid gap-4">
-        {pinnedItems.map((item) => {
-          const type = MOCK_ITEM_TYPES.find(t => t.id === item.typeId);
-          const Icon = getIcon(type?.icon || 'file');
-          const borderColor = type?.color || 'var(--color-primary)';
+        {items.map((item) => {
+          const Icon = getIcon(item.type.icon || 'file');
+          const borderColor = item.type.color || 'var(--color-primary)';
           
           return (
             <Card 
               key={item.id} 
-              className="group cursor-pointer hover:border-primary/50 transition-colors border-l-4"
-              style={{ borderLeftColor: borderColor }}
+              className="group cursor-pointer transition-all duration-200 relative overflow-hidden border-transparent"
             >
+              <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: borderColor }} />
+              <div
+                className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                style={{
+                  padding: '1px',
+                  background: borderColor,
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                }}
+              />
+
               <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0 pb-1">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Icon className="h-5 w-5" style={{ color: type?.color }} />
+                    <Icon className="h-5 w-5" style={{ color: item.type.color || undefined }} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
