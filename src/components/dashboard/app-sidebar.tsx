@@ -56,6 +56,8 @@ interface Collection {
   id: string;
   name: string;
   isFavorite: boolean;
+  primaryColor?: string;
+  types?: Array<{ id: string; count: number; color?: string; icon?: string; name?: string }>;
 }
 
 interface UserProfile {
@@ -68,13 +70,29 @@ interface UserProfile {
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   itemTypes: ItemType[];
-  collections: Collection[];
+  collections: Collection[]; // all collections
+  recentCollections?: Collection[]; // optional recent collections with primaryColor
   user: UserProfile;
 }
 
-export function AppSidebar({ itemTypes, collections, user, ...props }: AppSidebarProps) {
+export function AppSidebar({ itemTypes, collections, recentCollections, user, ...props }: AppSidebarProps) {
   const favoriteCollections = collections.filter((c) => c.isFavorite).slice(0, 3);
-  const recentCollections = collections.slice(0, 3);
+  const recent = (recentCollections && recentCollections.length > 0)
+    ? recentCollections.slice(0, 3)
+    : collections.slice(0, 3);
+
+  function collectionGradient(collection: Collection) {
+    const colors = (collection.types || [])
+      .map(t => t.color)
+      .filter(Boolean) as string[];
+
+    if (colors.length === 0) return collection.primaryColor || 'var(--color-primary)';
+    if (colors.length === 1) return colors[0];
+
+    // Limit to first 3 colors for a tidy gradient
+    const used = colors.slice(0, 3).join(', ');
+    return `linear-gradient(135deg, ${used})`;
+  }
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="h-svh" {...props}>
@@ -106,10 +124,14 @@ export function AppSidebar({ itemTypes, collections, user, ...props }: AppSideba
                 return (
                   <SidebarMenuItem key={type.id}>
                     <SidebarMenuButton asChild tooltip={type.name}>
-                      <Link href={`/items/${type.id}`}>
+                      <Link
+                        href={`/items/${type.id}`}
+                        className="flex items-center gap-2 w-[200px] group-data-[collapsible=icon]:justify-center"
+                        title={type.name}
+                      >
                         <Icon className="size-4" style={{ color: type.color || undefined }} />
-                        <span>{type.name}</span>
-                        <span className="ml-auto text-xs text-muted-foreground">{type.count}</span>
+                        <span className="truncate group-data-[collapsible=icon]:hidden">{type.name}</span>
+                        <span className="ml-auto text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">{type.count}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -129,9 +151,13 @@ export function AppSidebar({ itemTypes, collections, user, ...props }: AppSideba
               {favoriteCollections.map((collection) => (
                 <SidebarMenuItem key={collection.id}>
                   <SidebarMenuButton asChild>
-                    <Link href={`/collections/${collection.id}`}>
+                    <Link
+                      href={`/collections/${collection.id}`}
+                      className="flex items-center gap-2 w-[200px] group-data-[collapsible=icon]:justify-center"
+                      title={collection.name}
+                    >
                       <Star className="size-4 fill-amber-500 text-amber-500" />
-                      <span>{collection.name}</span>
+                      <span  className="truncate group-data-[collapsible=icon]:hidden">{collection.name}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -149,12 +175,19 @@ export function AppSidebar({ itemTypes, collections, user, ...props }: AppSideba
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {recentCollections.map((collection) => (
+              {recent.map((collection) => (
                 <SidebarMenuItem key={collection.id}>
                   <SidebarMenuButton asChild>
-                    <Link href={`/collections/${collection.id}`}>
-                      <ChevronRight className="size-4" />
-                      <span>{collection.name}</span>
+                    <Link
+                      href={`/collections/${collection.id}`}
+                      className="flex items-center gap-2 w-[200px] group-data-[collapsible=icon]:justify-center"
+                      title={collection.name}
+                    >
+                      <div
+                        className="size-4 rounded-full mr-2"
+                        style={{ background: collectionGradient(collection), width: 14, height: 14 }}
+                      />
+                      <span className="truncate group-data-[collapsible=icon]:hidden">{collection.name}</span>
                     </Link>
                   </SidebarMenuButton>
                   <DropdownMenu>
@@ -179,6 +212,18 @@ export function AppSidebar({ itemTypes, collections, user, ...props }: AppSideba
                   </DropdownMenu>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href="/collections"
+                    className="flex items-center gap-2 w-[200px] group-data-[collapsible=icon]:justify-center"
+                    title="View all collections"
+                  >
+                    <ChevronRight className="size-4" />
+                    <span className="truncate group-data-[collapsible=icon]:hidden">View all collections</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

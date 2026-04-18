@@ -9,7 +9,7 @@ import {
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { getItemTypes } from "@/lib/db/items";
-import { getAllCollections } from "@/lib/db/collections";
+import { getAllCollections, getRecentCollections } from "@/lib/db/collections";
 import { getUserProfile } from "@/lib/db/user";
 
 export default async function DashboardLayout({
@@ -20,9 +20,10 @@ export default async function DashboardLayout({
   // TODO: Get email from session after implementing auth
   const userEmail = "demo@devstash.io";
 
-  const [itemTypes, collections, user] = await Promise.all([
+  const [itemTypes, collections, recentCollections, user] = await Promise.all([
     getItemTypes(userEmail),
     getAllCollections(userEmail),
+    getRecentCollections(userEmail),
     getUserProfile(userEmail),
   ]);
 
@@ -30,7 +31,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar itemTypes={itemTypes} collections={collections} user={user} />
+      <AppSidebar itemTypes={itemTypes} collections={collections} recentCollections={recentCollections} user={user} />
       <SidebarInset>
         <div className="flex flex-col w-full">
           <header className="fixed top-0 right-0 left-0 h-16 flex items-center gap-2 border-b border-sidebar-border px-4 bg-card/50 backdrop-blur-sm z-40 md:peer-data-[state=expanded]:left-[var(--sidebar-width)] md:peer-data-[collapsible=icon]:left-[var(--sidebar-width-icon)]">
