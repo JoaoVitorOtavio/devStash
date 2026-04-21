@@ -12,7 +12,15 @@ export async function getUserProfile(userEmail: string) {
     }
   });
 
-  if (!user) return null;
+  if (!user) {
+    return {
+      id: "guest-id",
+      email: userEmail,
+      name: "Guest User",
+      image: "https://github.com/shadcn.png",
+      isPro: false,
+    };
+  }
 
   return {
     ...user,

@@ -27,8 +27,6 @@ export default async function DashboardLayout({
     getUserProfile(userEmail),
   ]);
 
-  if (!user) return null;
-
   return (
     <SidebarProvider>
       <AppSidebar itemTypes={itemTypes} collections={collections} recentCollections={recentCollections} user={user} />

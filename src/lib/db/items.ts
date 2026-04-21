@@ -49,20 +49,18 @@ export async function getItemTypes(userEmail: string) {
     select: { id: true }
   });
 
-  if (!user) return [];
-
   const types = await prisma.itemType.findMany({
     where: {
       OR: [
         { isSystem: true },
-        { userId: user.id }
+        ...(user ? [{ userId: user.id }] : [])
       ]
     },
     include: {
       _count: {
         select: { 
           items: {
-            where: { userId: user.id }
+            where: user ? { userId: user.id } : { userId: 'non-existent' }
           } 
         }
       }

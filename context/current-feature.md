@@ -1,17 +1,27 @@
-# Current Feature: [Feature Name]
+# Current Feature: Dashboard Empty States & Guest Fallbacks
 
-[Description]
+Implementação de estados vazios (empty states) para os componentes do dashboard e suporte a usuários convidados (guest fallbacks) para garantir uma interface funcional mesmo sem dados ou autenticação completa.
 
 ## Status
-In Progress
+Completed
 
 ## Goals
- - [ ] Goal 1
+ - [x] Implementar estados vazios para itens pinados.
+ - [x] Implementar estados vazios para coleções recentes.
+ - [x] Implementar estados vazios para itens recentes com botão de ação.
+ - [x] Adicionar suporte a perfil de convidado (Guest User) como fallback.
+ - [x] Garantir que a Sidebar e consultas ao banco lidem com a ausência de dados do usuário.
 
 ## Notes
-- Note 1
+- Os estados vazios seguem o design minimalista do projeto, usando bordas tracejadas e ícones discretos.
 
 ## History
+- 2026-04-21: Completed Dashboard Empty States & Guest Fallbacks:
+  - Added empty state UI for `PinnedItems`, `RecentCollections`, and `RecentItems`.
+  - Implemented a Guest User fallback in `getUserProfile` when no user is found.
+  - Updated `AppSidebar` to show a "No collections yet" message.
+  - Refined database queries in `src/lib/db/items.ts` to handle guest/null users gracefully.
+  - Fixed potential null reference in `DashboardLayout`.
 - 2026-04-18: Completed Stats & Sidebar Integration:
   - Replaced dummy item data (pinned and recent) with Prisma/Neon DB data.
   - Implemented dynamic Sidebar with real user profile, item types, and collections.

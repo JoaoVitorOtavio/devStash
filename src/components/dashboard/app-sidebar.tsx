@@ -212,6 +212,9 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                   </DropdownMenu>
                 </SidebarMenuItem>
               ))}
+              {recent.length === 0 && (
+                <div className="px-3 py-2 text-xs text-muted-foreground italic">No collections yet</div>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link
