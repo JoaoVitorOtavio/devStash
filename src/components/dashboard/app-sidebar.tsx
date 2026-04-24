@@ -121,6 +121,8 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
             <SidebarMenu>
               {itemTypes.map((type) => {
                 const Icon = getIcon(type.icon || 'file');
+                const isProType = type.name.toLowerCase() === 'file' || type.name.toLowerCase() === 'image';
+
                 return (
                   <SidebarMenuItem key={type.id}>
                     <SidebarMenuButton asChild tooltip={type.name}>
@@ -130,7 +132,12 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                         title={type.name}
                       >
                         <Icon className="size-4" style={{ color: type.color || undefined }} />
-                        <span className="truncate group-data-[collapsible=icon]:hidden">{type.name}</span>
+                        <span className="truncate group-data-[collapsible=icon]:hidden capitalize">{type.name}</span>
+                        {isProType && (
+                          <Badge variant="secondary" className="ml-1 px-1 py-0 h-3.5 text-[8px] font-bold group-data-[collapsible=icon]:hidden">
+                            PRO
+                          </Badge>
+                        )}
                         <span className="ml-auto text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">{type.count}</span>
                       </Link>
                     </SidebarMenuButton>

@@ -1,21 +1,26 @@
-# Current Feature: Dashboard Empty States & Guest Fallbacks
+# Current Feature: Add Pro Badge to Sidebar
 
-Implementação de estados vazios (empty states) para os componentes do dashboard e suporte a usuários convidados (guest fallbacks) para garantir uma interface funcional mesmo sem dados ou autenticação completa.
+Add a pro badge to the files and the images type in the sidebar.
 
 ## Status
-Completed
+Complete
 
 ## Goals
- - [x] Implementar estados vazios para itens pinados.
- - [x] Implementar estados vazios para coleções recentes.
- - [x] Implementar estados vazios para itens recentes com botão de ação.
- - [x] Adicionar suporte a perfil de convidado (Guest User) como fallback.
- - [x] Garantir que a Sidebar e consultas ao banco lidem com a ausência de dados do usuário.
+- [x] Implementar componente de Badge do ShadCN UI na Sidebar.
+- [x] Adicionar badge "PRO" para o tipo de item "File".
+- [x] Adicionar badge "PRO" para o tipo de item "Image".
+- [x] Garantir que o design do badge seja limpo, sutil e em caixa alta (PRO).
 
 ## Notes
-- Os estados vazios seguem o design minimalista do projeto, usando bordas tracejadas e ícones discretos.
+- Seguir os padrões visuais já estabelecidos no dashboard.
+- Utilizar o componente `Badge` do ShadCN já disponível em `src/components/ui/badge.tsx`.
 
 ## History
+- 2026-04-23: Completed Add Pro Badge to Sidebar:
+  - Added "PRO" badge to "File" and "Image" item types in `AppSidebar`.
+  - Used ShadCN UI `Badge` component with `secondary` variant.
+  - Ensured badges are hidden when sidebar is collapsed.
+  - Added `capitalize` class to item type names for better presentation.
 - 2026-04-21: Completed Dashboard Empty States & Guest Fallbacks:
   - Added empty state UI for `PinnedItems`, `RecentCollections`, and `RecentItems`.
   - Implemented a Guest User fallback in `getUserProfile` when no user is found.
