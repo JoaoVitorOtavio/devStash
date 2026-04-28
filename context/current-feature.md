@@ -8,6 +8,11 @@ Not Started
 ## Notes
 
 ## History
+- 2026-04-28: Completed Database Optimization & Caching:
+  - Optimized database queries in `src/lib/db/` to eliminate redundant user lookups.
+  - Implemented `React.cache` for data-fetching functions to ensure single database hits per request.
+  - Refactor functions to accept `userId` instead of `userEmail` where appropriate to reduce overhead.
+  - Updated `DashboardLayout` and `DashboardPage` to use the new optimized data fetching pattern.
 - 2026-04-23: Completed Add Pro Badge to Sidebar:
   - Added "PRO" badge to "File" and "Image" item types in `AppSidebar`.
   - Used ShadCN UI `Badge` component with `secondary` variant.

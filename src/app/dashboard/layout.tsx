@@ -19,12 +19,12 @@ export default async function DashboardLayout({
 }) {
   // TODO: Get email from session after implementing auth
   const userEmail = "demo@devstash.io";
+  const user = await getUserProfile(userEmail);
 
-  const [itemTypes, collections, recentCollections, user] = await Promise.all([
-    getItemTypes(userEmail),
-    getAllCollections(userEmail),
-    getRecentCollections(userEmail),
-    getUserProfile(userEmail),
+  const [itemTypes, collections, recentCollections] = await Promise.all([
+    getItemTypes(user.id),
+    getAllCollections(user.id),
+    getRecentCollections(user.id),
   ]);
 
   return (

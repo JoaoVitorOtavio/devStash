@@ -5,16 +5,18 @@ import { RecentItems } from "@/components/dashboard/recent-items";
 import { getRecentCollections } from "@/lib/db/collections";
 import { getDashboardStats } from "@/lib/db/stats";
 import { getPinnedItems, getRecentItems } from "@/lib/db/items";
+import { getUserProfile } from "@/lib/db/user";
 
 export default async function DashboardPage() {
   // TODO: Get email from session after implementing auth
   const userEmail = "demo@devstash.io";
+  const user = await getUserProfile(userEmail);
   
   const [recentCollections, stats, pinnedItems, recentItems] = await Promise.all([
-    getRecentCollections(userEmail),
-    getDashboardStats(userEmail),
-    getPinnedItems(userEmail),
-    getRecentItems(userEmail),
+    getRecentCollections(user.id),
+    getDashboardStats(user.id),
+    getPinnedItems(user.id),
+    getRecentItems(user.id),
   ]);
 
   return (

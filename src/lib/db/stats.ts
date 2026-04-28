@@ -1,12 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 
-export async function getDashboardStats(userEmail: string) {
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    select: { id: true }
-  });
-
-  if (!user) {
+export const getDashboardStats = cache(async (userId: string) => {
+  if (userId === "guest-id") {
     return {
       totalItems: 0,
       totalCollections: 0,
@@ -17,11 +13,11 @@ export async function getDashboardStats(userEmail: string) {
   }
 
   const [totalItems, totalCollections, favoriteItems, favoriteCollections, pinnedItems] = await Promise.all([
-    prisma.item.count({ where: { userId: user.id } }),
-    prisma.collection.count({ where: { userId: user.id } }),
-    prisma.item.count({ where: { userId: user.id, isFavorite: true } }),
-    prisma.collection.count({ where: { userId: user.id, isFavorite: true } }),
-    prisma.item.count({ where: { userId: user.id, isPinned: true } }),
+    prisma.item.count({ where: { userId } }),
+    prisma.collection.count({ where: { userId } }),
+    prisma.item.count({ where: { userId, isFavorite: true } }),
+    prisma.collection.count({ where: { userId, isFavorite: true } }),
+    prisma.item.count({ where: { userId, isPinned: true } }),
   ]);
 
   return {
@@ -31,4 +27,4 @@ export async function getDashboardStats(userEmail: string) {
     favoriteCollections,
     pinnedItems,
   };
-}
+});

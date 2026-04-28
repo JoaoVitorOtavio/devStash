@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 
-export async function getUserProfile(userEmail: string) {
+export const getUserProfile = cache(async (userEmail: string) => {
   const user = await prisma.user.findUnique({
     where: { email: userEmail },
     select: {
@@ -27,4 +28,4 @@ export async function getUserProfile(userEmail: string) {
     name: user.name || "User", // Fallback
     image: user.image || "https://github.com/shadcn.png", // Fallback
   };
-}
+});

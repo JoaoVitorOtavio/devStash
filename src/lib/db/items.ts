@@ -1,16 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 
-export async function getPinnedItems(userEmail: string, limit = 4) {
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    select: { id: true }
-  });
-
-  if (!user) return [];
+export const getPinnedItems = cache(async (userId: string, limit = 4) => {
+  if (userId === "guest-id") return [];
 
   const items = await prisma.item.findMany({
     where: { 
-      userId: user.id,
+      userId,
       isPinned: true
     },
     take: limit,
@@ -41,26 +37,23 @@ export async function getPinnedItems(userEmail: string, limit = 4) {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt
   }));
-}
+});
 
-export async function getItemTypes(userEmail: string) {
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    select: { id: true }
-  });
+export const getItemTypes = cache(async (userId: string) => {
+  const isGuest = userId === "guest-id";
 
   const types = await prisma.itemType.findMany({
     where: {
       OR: [
         { isSystem: true },
-        ...(user ? [{ userId: user.id }] : [])
+        ...(!isGuest ? [{ userId }] : [])
       ]
     },
     include: {
       _count: {
         select: { 
           items: {
-            where: user ? { userId: user.id } : { userId: 'non-existent' }
+            where: !isGuest ? { userId } : { userId: 'non-existent' }
           } 
         }
       }
@@ -75,18 +68,13 @@ export async function getItemTypes(userEmail: string) {
     color: type.color,
     count: type._count.items,
   }));
-}
+});
 
-export async function getRecentItems(userEmail: string, limit = 10) {
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    select: { id: true }
-  });
-
-  if (!user) return [];
+export const getRecentItems = cache(async (userId: string, limit = 10) => {
+  if (userId === "guest-id") return [];
 
   const items = await prisma.item.findMany({
-    where: { userId: user.id },
+    where: { userId },
     take: limit,
     orderBy: { createdAt: 'desc' },
     include: {
@@ -120,4 +108,4 @@ export async function getRecentItems(userEmail: string, limit = 10) {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt
   }));
-}
+});

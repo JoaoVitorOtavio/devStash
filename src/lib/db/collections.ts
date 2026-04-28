@@ -1,15 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 
-export async function getRecentCollections(userEmail: string, limit = 4) {
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    select: { id: true }
-  });
-
-  if (!user) return [];
+export const getRecentCollections = cache(async (userId: string, limit = 4) => {
+  if (userId === "guest-id") return [];
 
   const collections = await prisma.collection.findMany({
-    where: { userId: user.id },
+    where: { userId },
     take: limit,
     orderBy: { updatedAt: 'desc' },
     include: {
@@ -69,18 +65,13 @@ export async function getRecentCollections(userEmail: string, limit = 4) {
       updatedAt: collection.updatedAt
     };
   });
-}
+});
 
-export async function getAllCollections(userEmail: string) {
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    select: { id: true }
-  });
-
-  if (!user) return [];
+export const getAllCollections = cache(async (userId: string) => {
+  if (userId === "guest-id") return [];
 
   const collections = await prisma.collection.findMany({
-    where: { userId: user.id },
+    where: { userId },
     orderBy: { updatedAt: 'desc' },
   });
 
@@ -90,4 +81,4 @@ export async function getAllCollections(userEmail: string) {
     isFavorite: collection.isFavorite,
     updatedAt: collection.updatedAt
   }));
-}
+});
