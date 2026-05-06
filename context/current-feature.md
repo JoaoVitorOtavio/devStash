@@ -1,15 +1,11 @@
 # Current Feature
 
 ## Status
-Completed
+Not Started
 
 ## Goals
-- [x] Configure Neon MCP for database operations
-- [x] Add development guidelines for Neon/Database in `GEMINI.md`
-- [x] Set project and branch defaults for `neonctl`
 
 ## Notes
-- Ensures consistent database management across development environments.
 
 ## History
 - 2026-05-05: Completed Neon MCP Configuration:
