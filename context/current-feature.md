@@ -1,13 +1,21 @@
 # Current Feature
 
 ## Status
-Not Started
+Completed
 
 ## Goals
+- [x] Configure Neon MCP for database operations
+- [x] Add development guidelines for Neon/Database in `GEMINI.md`
+- [x] Set project and branch defaults for `neonctl`
 
 ## Notes
+- Ensures consistent database management across development environments.
 
 ## History
+- 2026-05-05: Completed Neon MCP Configuration:
+  - Added guidelines for using Neon MCP and `neonctl` in `GEMINI.md`.
+  - Specified default project and development branch.
+  - Set restrictions for production branch operations.
 - 2026-04-28: Completed Database Optimization & Caching:
   - Optimized database queries in `src/lib/db/` to eliminate redundant user lookups.
   - Implemented `React.cache` for data-fetching functions to ensure single database hits per request.

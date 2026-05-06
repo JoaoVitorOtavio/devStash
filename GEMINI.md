@@ -44,3 +44,11 @@ npm run lint
 
 Exemplo de comportamento esperado:
 "Você deseja que eu faça o commit dessas alterações?"
+
+## Neon MCP Configuration
+
+Ao utilizar o Neon MCP ou a CLI `neonctl`, siga estas diretrizes:
+- **Projeto Padrão:** Sempre utilize o projeto `devstash` (ID: `small-unit-58892269`).
+- **Branch Padrão:** Utilize a branch `development` (ID: `br-spring-dust-anl6q0tg`) para todas as operações de banco de dados, migrações e consultas.
+- **Restrição de Produção:** **NUNCA** realize alterações, migrações ou manipulação de dados na branch `production` (ID: `br-still-credit-an3kvvdr`), a menos que eu peça explicitamente por escrito.
+- **Contexto de Comando:** Ao rodar comandos via shell, prefira `npx neonctl` se a CLI global não estiver disponível.
