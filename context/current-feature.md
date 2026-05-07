@@ -8,6 +8,13 @@ Not Started
 ## Notes
 
 ## History
+- 2026-05-06: Completed Auth Phase 1 - NextAuth Setup:
+  - Installed `next-auth@beta` and `@auth/prisma-adapter`.
+  - Implemented split auth configuration (`src/auth.config.ts` and `src/auth.ts`) for Edge compatibility.
+  - Added GitHub OAuth provider.
+  - Created `src/proxy.ts` for route protection of `/dashboard/*` (Next.js 16).
+  - Extended Session type with `user.id` in `src/types/next-auth.d.ts`.
+  - Verified redirection logic from dashboard to sign-in page.
 - 2026-05-05: Completed Neon MCP Configuration:
   - Added guidelines for using Neon MCP and `neonctl` in `GEMINI.md`.
   - Specified default project and development branch.
@@ -35,7 +42,7 @@ Not Started
   - Ensured all dashboard components (stats, collections, items, sidebar) are fully data-driven.
   - Display system item types in the sidebar with icons and counts.
   - Show colored circle for recent collections based on their most-used item type.
-  - Added "View all collections" link under the recent collections list.
+  - Added "No collections yet" message when appropriate.
   - Dashboard layout now fetches recent collections and passes them to the sidebar.
 - 2026-04-07: Completed Dashboard Collections Integration:
   - Replaced dummy collection data with actual data from Prisma.
