@@ -8,6 +8,12 @@ Not Started
 ## Notes
 
 ## History
+- 2026-05-07: Completed Auth Phase 2 - Credentials & Registration:
+  - Added Credentials provider to `src/auth.config.ts` with field definitions (email, password) for the default UI.
+  - Implemented secure `authorize` logic in `src/auth.ts` using `bcryptjs` for password validation.
+  - Created registration API route at `src/app/api/auth/register/route.ts` with input validation and password hashing.
+  - Verified registration flow using `Invoke-RestMethod` and login flow via the default NextAuth sign-in page.
+  - Fixed an issue where the Credentials sign-in was failing due to missing field definitions in the configuration.
 - 2026-05-06: Completed Auth Phase 1 - NextAuth Setup:
   - Installed `next-auth@beta` and `@auth/prisma-adapter`.
   - Implemented split auth configuration (`src/auth.config.ts` and `src/auth.ts`) for Edge compatibility.
