@@ -8,6 +8,10 @@ Not Started
 ## Notes
 
 ## History
+- 2026-05-27: Fixed useSearchParams Suspense Error:
+  - Wrapped `SignInForm` in `src/app/sign-in/page.tsx` with a `<Suspense>` boundary.
+  - Wrapped `LoginToast` in `src/app/dashboard/layout.tsx` with a `<Suspense>` boundary.
+  - Resolved build error "useSearchParams() should be wrapped in a suspense boundary".
 - 2026-05-26: Completed Auth Phase 3 - Custom UI:
   - Implemented custom Sign In and Register pages with a modern, "floating" card design.
   - Enhanced UI aesthetics with refined background colors, deep shadows, and improved button contrasts.

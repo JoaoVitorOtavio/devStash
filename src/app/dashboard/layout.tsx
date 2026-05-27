@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Search, Plus, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,9 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <LoginToast />
+      <Suspense fallback={null}>
+        <LoginToast />
+      </Suspense>
       <AppSidebar itemTypes={itemTypes} collections={collections} recentCollections={recentCollections} user={user} />
       <SidebarInset>
         <div className="flex flex-col w-full">
