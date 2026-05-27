@@ -40,9 +40,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getIcon } from "@/lib/icons";
+import { UserAvatar } from "@/components/user-avatar";
+import { logout } from "@/actions/auth";
 
 interface ItemType {
   id: string;
@@ -263,10 +264,7 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                   size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user.image} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar name={user.name} image={user.image} className="h-8 w-8 rounded-lg" />
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                     <span className="truncate font-semibold">{user.name}</span>
                     <span className="truncate text-xs text-muted-foreground">{user.email}</span>
@@ -281,16 +279,13 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                 sideOffset={4}
               >
                 <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user.image} alt={user.name} />
-                      <AvatarFallback className="rounded-lg">{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                  <Link href="/profile" className="flex items-center gap-2 px-1 py-1.5 text-left text-sm hover:bg-sidebar-accent rounded-sm">
+                    <UserAvatar name={user.name} image={user.image} className="h-8 w-8 rounded-lg" />
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">{user.name}</span>
                       <span className="truncate text-xs text-muted-foreground">{user.email}</span>
                     </div>
-                  </div>
+                  </Link>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
@@ -311,7 +306,7 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => logout()}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>

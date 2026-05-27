@@ -11,7 +11,7 @@ export const proxy = auth((req) => {
 
   if (isDashboardRoute) {
     if (isLoggedIn) return;
-    return Response.redirect(new URL("/api/auth/signin", nextUrl));
+    return Response.redirect(new URL("/sign-in", nextUrl));
   }
 });
 

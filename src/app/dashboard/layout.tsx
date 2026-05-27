@@ -8,18 +8,25 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
+import { LoginToast } from "@/components/auth/login-toast";
 import { getItemTypes } from "@/lib/db/items";
 import { getAllCollections, getRecentCollections } from "@/lib/db/collections";
 import { getUserProfile } from "@/lib/db/user";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // TODO: Get email from session after implementing auth
-  const userEmail = "demo@devstash.io";
-  const user = await getUserProfile(userEmail);
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/sign-in");
+  }
+
+  const user = await getUserProfile(session.user.email!);
 
   const [itemTypes, collections, recentCollections] = await Promise.all([
     getItemTypes(user.id),
@@ -29,6 +36,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
+      <LoginToast />
       <AppSidebar itemTypes={itemTypes} collections={collections} recentCollections={recentCollections} user={user} />
       <SidebarInset>
         <div className="flex flex-col w-full">

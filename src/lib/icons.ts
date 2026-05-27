@@ -19,7 +19,8 @@ import {
   User,
   LayoutDashboard,
   LayoutGrid,
-  StickyNote
+  StickyNote,
+  GitBranch
 } from "lucide-react";
 
 export const Icons = {
@@ -56,7 +57,8 @@ export const Icons = {
   logout: LogOut,
   user: User,
   dashboard: LayoutDashboard,
-  grid: LayoutGrid
+  grid: LayoutGrid,
+  github: GitBranch
 };
 
 export type IconName = keyof typeof Icons;

@@ -1,11 +1,20 @@
-# Current Feature
+# Current Feature: Auth Phase 3 - Custom UI
 
 ## Status
-Not Started
+In Progress
 
 ## Goals
+- Implement custom Sign In page (`/sign-in`) with email/password and GitHub login.
+- Implement custom Register page (`/register`) with form validation and redirection.
+- Update sidebar footer to display user avatar, name, and email.
+- Implement "Sign out" functionality in the sidebar user menu.
+- Create a reusable avatar component with initials fallback.
 
 ## Notes
+- Replace default NextAuth pages with custom-styled ones.
+- Sidebar user menu should include a "Sign out" link.
+- Avatar logic: use user image if available, otherwise generate initials from name.
+- Link to register page from sign-in page and vice-versa.
 
 ## History
 - 2026-05-07: Completed Auth Phase 2 - Credentials & Registration:

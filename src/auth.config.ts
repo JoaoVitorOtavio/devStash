@@ -4,6 +4,9 @@ import type { NextAuthConfig } from "next-auth";
 
 // Notice this is only an object, not a full Auth.js instance
 export default {
+  pages: {
+    signIn: "/sign-in",
+  },
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
