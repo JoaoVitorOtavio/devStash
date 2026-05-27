@@ -1,22 +1,20 @@
-# Current Feature: Auth Phase 3 - Custom UI
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Implement custom Sign In page (`/sign-in`) with email/password and GitHub login.
-- Implement custom Register page (`/register`) with form validation and redirection.
-- Update sidebar footer to display user avatar, name, and email.
-- Implement "Sign out" functionality in the sidebar user menu.
-- Create a reusable avatar component with initials fallback.
 
 ## Notes
-- Replace default NextAuth pages with custom-styled ones.
-- Sidebar user menu should include a "Sign out" link.
-- Avatar logic: use user image if available, otherwise generate initials from name.
-- Link to register page from sign-in page and vice-versa.
 
 ## History
+- 2026-05-26: Completed Auth Phase 3 - Custom UI:
+  - Implemented custom Sign In and Register pages with a modern, "floating" card design.
+  - Enhanced UI aesthetics with refined background colors, deep shadows, and improved button contrasts.
+  - Integrated `sonner` for rich toast notifications during registration, login, and logout.
+  - Updated the application sidebar to display real-time user profile data (avatar, name, email) with a custom initials fallback.
+  - Implemented secure Sign Out functionality directly from the sidebar user menu.
+  - Added URL parameter cleanup and `useRef` guards to prevent duplicate toast notifications.
 - 2026-05-07: Completed Auth Phase 2 - Credentials & Registration:
   - Added Credentials provider to `src/auth.config.ts` with field definitions (email, password) for the default UI.
   - Implemented secure `authorize` logic in `src/auth.ts` using `bcryptjs` for password validation.
