@@ -1,24 +1,22 @@
-# Current Feature: Setup Email Verification
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Update Prisma schema to include `emailVerified` (DateTime) and a `VerificationToken` model.
-- Integrate the `resend` library for sending emails.
-- Implement a utility function to generate secure, time-limited verification tokens.
-- Create a verification email template/component.
-- Update the user registration flow to generate a token and send the verification email.
-- Create an API route or page at `/auth/verify` to validate tokens and update user status.
-- Implement a "Pending Verification" UI or feedback after registration.
-- (Optional) Prevent sign-in for users with unverified emails if using Credentials.
 
 ## Notes
-- `RESEND_API_KEY` is available in `.env`.
-- Verification links should be clicked by the user to activate their account.
-- Consider edge cases like expired tokens or resending the email.
 
 ## History
+- 2026-06-04: Setup Email Verification:
+  - Updated Prisma schema with `emailVerified` and `VerificationToken` model.
+  - Integrated `resend` library for sending verification emails.
+  - Implemented secure token generation and validation utilities.
+  - Created custom `/auth/verify` page and API route for token validation.
+  - Updated registration flow to send verification emails automatically.
+  - Added UI feedback for pending verification on the sign-in page.
+  - Prevented sign-in for users with unverified emails.
+  - Created `scripts/cleanup-db.ts` utility for database maintenance.
 - 2026-05-27: Fixed useSearchParams Suspense Error:
   - Wrapped `SignInForm` in `src/app/sign-in/page.tsx` with a `<Suspense>` boundary.
   - Wrapped `LoginToast` in `src/app/dashboard/layout.tsx` with a `<Suspense>` boundary.
