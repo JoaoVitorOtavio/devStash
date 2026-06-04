@@ -1,20 +1,19 @@
-# Current Feature: Toggle Email Verification
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Add an environment variable `NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION` to toggle the system.
-- Update the registration API to skip token generation and email sending if verification is disabled.
-- Automatically mark users as verified during registration if the toggle is off.
-- Update the sign-in authorization logic to bypass the verification check when the system is disabled.
-- Ensure UI components (like the "check your email" toast) only appear when verification is active.
 
 ## Notes
-- Default the toggle to `true` to maintain security, but allow it to be `false` for development/testing.
-- This addresses the limitation of using Resend with unverified domains during development.
 
 ## History
+- 2026-06-04: Toggle Email Verification:
+  - Added `NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION` environment variable to toggle the system.
+  - Updated registration API to skip token generation and email sending if verification is disabled.
+  - Automatically mark users as verified during registration if the toggle is off.
+  - Updated sign-in authorization logic to bypass the verification check when the system is disabled.
+  - Enhanced registration UI to show conditional success feedback based on verification status.
 - 2026-06-04: Setup Email Verification:
   - Updated Prisma schema with `emailVerified` and `VerificationToken` model.
   - Integrated `resend` library for sending verification emails.
