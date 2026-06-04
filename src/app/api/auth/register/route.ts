@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { generateVerificationToken } from "@/lib/tokens";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function POST(req: Request) {
   try {
@@ -26,6 +28,17 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
+      if (!existingUser.emailVerified) {
+        // If user exists but is not verified, send a new verification email
+        const verificationToken = await generateVerificationToken(email);
+        await sendVerificationEmail(verificationToken.identifier, verificationToken.token);
+
+        return NextResponse.json(
+          { message: "Verification email re-sent!", userId: existingUser.id },
+          { status: 200 }
+        );
+      }
+
       return NextResponse.json(
         { error: "User already exists" },
         { status: 400 }
@@ -44,8 +57,12 @@ export async function POST(req: Request) {
       },
     });
 
+    // Generate verification token
+    const verificationToken = await generateVerificationToken(email);
+    await sendVerificationEmail(verificationToken.identifier, verificationToken.token);
+
     return NextResponse.json(
-      { message: "User registered successfully", userId: user.id },
+      { message: "Verification email sent!", userId: user.id },
       { status: 201 }
     );
   } catch (error) {

@@ -15,6 +15,8 @@ export async function loginWithEmail(prevState: { error?: string } | undefined, 
       switch (error.type) {
         case "CredentialsSignin":
           return { error: "Invalid credentials." };
+        case "CallbackRouteError":
+          return { error: error.cause?.err?.message || "Something went wrong." };
         default:
           return { error: "Something went wrong." };
       }

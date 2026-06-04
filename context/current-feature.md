@@ -1,11 +1,22 @@
-# Current Feature
+# Current Feature: Setup Email Verification
 
 ## Status
-Not Started
+In Progress
 
 ## Goals
+- Update Prisma schema to include `emailVerified` (DateTime) and a `VerificationToken` model.
+- Integrate the `resend` library for sending emails.
+- Implement a utility function to generate secure, time-limited verification tokens.
+- Create a verification email template/component.
+- Update the user registration flow to generate a token and send the verification email.
+- Create an API route or page at `/auth/verify` to validate tokens and update user status.
+- Implement a "Pending Verification" UI or feedback after registration.
+- (Optional) Prevent sign-in for users with unverified emails if using Credentials.
 
 ## Notes
+- `RESEND_API_KEY` is available in `.env`.
+- Verification links should be clicked by the user to activate their account.
+- Consider edge cases like expired tokens or resending the email.
 
 ## History
 - 2026-05-27: Fixed useSearchParams Suspense Error:

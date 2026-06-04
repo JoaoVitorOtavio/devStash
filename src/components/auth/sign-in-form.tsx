@@ -26,6 +26,11 @@ export function SignInForm() {
       window.history.replaceState(null, "", newPath);
     }
 
+    if (searchParams.get("verify")) {
+      toast.success("Confirmation email sent! Please check your inbox.", { id: "verify-success" });
+      cleanParams(["verify"]);
+      hasShownToast.current = true;
+    }
     if (searchParams.get("registered")) {
       toast.success("Account created! You can now sign in.", { id: "registered-success" });
       cleanParams(["registered"]);

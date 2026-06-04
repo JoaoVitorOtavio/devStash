@@ -9,6 +9,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider !== "credentials") return true;
+
+      const existingUser = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+
+      if (!existingUser?.emailVerified) return false;
+
+      return true;
+    },
     session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
@@ -39,6 +50,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         );
 
         if (!isPasswordValid) return null;
+
+        if (!user.emailVerified) {
+          throw new Error("Please verify your email first.");
+        }
 
         return {
           id: user.id,
