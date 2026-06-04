@@ -50,8 +50,13 @@ export function RegisterForm() {
         throw new Error(data.error || "Something went wrong");
       }
 
-      toast.success("Confirmation email sent! Please check your inbox.");
-      router.push("/sign-in?verify=true");
+      if (data.verificationDisabled) {
+        toast.success("Account created! You can now sign in.");
+        router.push("/sign-in?registered=true");
+      } else {
+        toast.success("Confirmation email sent! Please check your inbox.");
+        router.push("/sign-in?verify=true");
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

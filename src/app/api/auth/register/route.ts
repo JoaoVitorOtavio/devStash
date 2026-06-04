@@ -22,13 +22,15 @@ export async function POST(req: Request) {
       );
     }
 
+    const isVerificationEnabled = process.env.NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION !== "false";
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      if (!existingUser.emailVerified) {
+      if (isVerificationEnabled && !existingUser.emailVerified) {
         // If user exists but is not verified, send a new verification email
         const verificationToken = await generateVerificationToken(email);
         await sendVerificationEmail(verificationToken.identifier, verificationToken.token);
@@ -54,8 +56,16 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
+        emailVerified: isVerificationEnabled ? null : new Date(),
       },
     });
+
+    if (!isVerificationEnabled) {
+      return NextResponse.json(
+        { message: "Account created successfully!", userId: user.id, verificationDisabled: true },
+        { status: 201 }
+      );
+    }
 
     // Generate verification token
     const verificationToken = await generateVerificationToken(email);

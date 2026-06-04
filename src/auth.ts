@@ -12,6 +12,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user, account }) {
       if (account?.provider !== "credentials") return true;
 
+      const isVerificationEnabled = process.env.NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION !== "false";
+      if (!isVerificationEnabled) return true;
+
       const existingUser = await prisma.user.findUnique({
         where: { id: user.id },
       });
@@ -51,7 +54,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!isPasswordValid) return null;
 
-        if (!user.emailVerified) {
+        const isVerificationEnabled = process.env.NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION !== "false";
+
+        if (isVerificationEnabled && !user.emailVerified) {
           throw new Error("Please verify your email first.");
         }
 
