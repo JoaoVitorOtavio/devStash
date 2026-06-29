@@ -1,6 +1,6 @@
 import { ChevronRight, Folder } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getIcon } from "@/lib/icons";
+import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
 
 interface CollectionType {

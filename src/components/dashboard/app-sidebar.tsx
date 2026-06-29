@@ -41,7 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { getIcon } from "@/lib/icons";
+import { getIcon } from "@/server/icons";
 import { UserAvatar } from "@/components/user-avatar";
 import { logout } from "@/actions/auth";
 

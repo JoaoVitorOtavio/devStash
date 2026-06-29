@@ -1,6 +1,6 @@
 import { ChevronRight, Pin, Star } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { getIcon } from "@/lib/icons";
+import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
 
 interface PinnedItem {

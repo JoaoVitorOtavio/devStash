@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/utils";
+import { getInitials } from "@/server/utils";
 
 interface UserAvatarProps {
   name?: string | null;

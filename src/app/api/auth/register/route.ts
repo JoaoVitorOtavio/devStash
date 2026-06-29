@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { generateVerificationToken } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/lib/mail";
+import { prisma } from "@/server/prisma";
+import { generateVerificationToken } from "@/server/tokens";
+import { sendVerificationEmail } from "@/server/mail";
 
 export async function POST(req: Request) {
   try {

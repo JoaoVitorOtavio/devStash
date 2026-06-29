@@ -8,7 +8,7 @@ import { loginWithEmail, loginWithGitHub } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Icons } from "@/lib/icons";
+import { Icons } from "@/server/icons";
 
 export function SignInForm() {
   const [state, action, isPending] = useActionState(loginWithEmail, undefined);
@@ -70,7 +70,15 @@ export function SignInForm() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">Password</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="text-sm font-medium">Password</label>
+              <Link
+                href="/auth/forgot-password"
+                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
             <Input
               id="password"
               name="password"

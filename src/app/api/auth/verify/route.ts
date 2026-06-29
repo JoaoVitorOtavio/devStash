@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getVerificationTokenByToken } from "@/lib/tokens";
+import { prisma } from "@/server/prisma";
+import { getVerificationTokenByToken } from "@/server/tokens";
 
 export async function POST(req: Request) {
   try {

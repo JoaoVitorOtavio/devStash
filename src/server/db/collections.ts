@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/server/prisma";
 import { cache } from "react";
 
 export const getRecentCollections = cache(async (userId: string, limit = 4) => {

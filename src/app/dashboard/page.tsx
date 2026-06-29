@@ -2,10 +2,10 @@ import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentCollections } from "@/components/dashboard/recent-collections";
 import { PinnedItems } from "@/components/dashboard/pinned-items";
 import { RecentItems } from "@/components/dashboard/recent-items";
-import { getRecentCollections } from "@/lib/db/collections";
-import { getDashboardStats } from "@/lib/db/stats";
-import { getPinnedItems, getRecentItems } from "@/lib/db/items";
-import { getUserProfile } from "@/lib/db/user";
+import { getRecentCollections } from "@/server/db/collections";
+import { getDashboardStats } from "@/server/db/stats";
+import { getPinnedItems, getRecentItems } from "@/server/db/items";
+import { getUserProfile } from "@/server/db/user";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 

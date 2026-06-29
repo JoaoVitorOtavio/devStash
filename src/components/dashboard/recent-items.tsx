@@ -1,5 +1,5 @@
 import { ChevronRight, Clock, Star, MoreVertical, Plus } from "lucide-react";
-import { getIcon } from "@/lib/icons";
+import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

@@ -10,9 +10,9 @@ import {
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { LoginToast } from "@/components/auth/login-toast";
-import { getItemTypes } from "@/lib/db/items";
-import { getAllCollections, getRecentCollections } from "@/lib/db/collections";
-import { getUserProfile } from "@/lib/db/user";
+import { getItemTypes } from "@/server/db/items";
+import { getAllCollections, getRecentCollections } from "@/server/db/collections";
+import { getUserProfile } from "@/server/db/user";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
