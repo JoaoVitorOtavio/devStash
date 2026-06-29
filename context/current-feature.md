@@ -1,31 +1,21 @@
-# Current Feature: Forgot Password Functionality
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Add a "Forgot Password?" link to the custom Sign In form that redirects to `/auth/forgot-password`.
-- Create `/auth/forgot-password` page with a modern, floating card UI (matching other auth screens) allowing the user to request a password reset email.
-- Implement server action/functions in `src/actions/auth.ts` (or similar) to handle requesting password reset:
-  - Verify email exists and is a credentials user (OAuth users shouldn't reset password this way).
-  - Generate a secure token using the existing `VerificationToken` model (e.g., via `generateVerificationToken` or similar custom helper).
-  - Send reset password email using `resend` via a helper in `src/lib/mail.ts`.
-- Create `/auth/reset-password` page (supporting a `token` search parameter) with a modern UI to enter a new password.
-- Implement server action/functions to handle resetting the password:
-  - Verify the token exists, matches, and is not expired.
-  - Safely hash the new password (using `bcryptjs` as used in registration).
-  - Update user password in the database.
-  - Delete/cleanup the used verification token.
-- Write Vitest unit tests for the password reset/request actions/utils where logical.
-- Verify everything builds with `npm run build` and runs without errors.
 
 ## Notes
-- Reuse the existing `VerificationToken` model for storing password reset tokens.
-- Maintain consistency with the existing auth styles (floating card design, background/text colors, dark mode focus, and using `sonner` for toast notifications).
-- Ensure input validation using `zod` where applicable (matching existing register/login form conventions).
-- Do not affect existing email verification or login logic except where adding the forgot password flow.
 
 ## History
+- 2026-06-28: Forgot Password Functionality:
+  - Add "Forgot Password?" link to the sign-in form.
+  - Create `/auth/forgot-password` page with modern floating card UI.
+  - Implement `forgotPassword` server action with secure token generation (reusing `VerificationToken` model) and email dispatch via Resend.
+  - Create `/auth/reset-password` page.
+  - Implement `resetPassword` server action with token validation and password hashing (bcryptjs).
+  - Add redirection to login page upon success.
+  - Renamed `src/lib` to `src/server` for better architectural clarity.
 - 2026-06-04: Toggle Email Verification:
   - Added `NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION` environment variable to toggle the system.
   - Updated registration API to skip token generation and email sending if verification is disabled.
