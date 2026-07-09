@@ -10,6 +10,8 @@ export const getUserProfile = cache(async (userEmail: string) => {
       name: true,
       image: true,
       isPro: true,
+      createdAt: true,
+      password: true,
     }
   });
 
@@ -20,6 +22,8 @@ export const getUserProfile = cache(async (userEmail: string) => {
       name: "Guest User",
       image: "https://github.com/shadcn.png",
       isPro: false,
+      createdAt: new Date(),
+      hasPassword: false,
     };
   }
 
@@ -27,5 +31,6 @@ export const getUserProfile = cache(async (userEmail: string) => {
     ...user,
     name: user.name || "User", // Fallback
     image: user.image || "https://github.com/shadcn.png", // Fallback
+    hasPassword: !!user.password,
   };
 });

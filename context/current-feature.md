@@ -8,6 +8,12 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-08: Completed Profile Page:
+  - Implemented `/profile` route with user info, usage statistics, and account management.
+  - Created a unified 'Usage Statistics' card with dynamic item type breakdown and icons.
+  - Implemented a centered modal for password changes with an optimized UI.
+  - Integrated profile page into DashboardLayout for consistent navigation.
+  - Added delete account functionality with a destructive UI container.
 - 2026-06-28: Forgot Password Functionality:
   - Add "Forgot Password?" link to the sign-in form.
   - Create `/auth/forgot-password` page with modern floating card UI.
