@@ -28,3 +28,42 @@ export const getDashboardStats = cache(async (userId: string) => {
     pinnedItems,
   };
 });
+
+export const getUserStats = cache(async (userId: string) => {
+  if (userId === "guest-id") {
+    return {
+      totalItems: 0,
+      totalCollections: 0,
+      itemTypeBreakdown: [],
+    };
+  }
+
+  const [totalItems, totalCollections, itemTypes] = await Promise.all([
+    prisma.item.count({ where: { userId } }),
+    prisma.collection.count({ where: { userId } }),
+    prisma.itemType.findMany({
+      where: { OR: [{ userId }, { isSystem: true }] },
+      select: {
+        name: true,
+        icon: true,
+        color: true,
+        _count: {
+          select: {
+            items: { where: { userId } }
+          }
+        }
+      }
+    }),
+  ]);
+
+  return {
+    totalItems,
+    totalCollections,
+    itemTypeBreakdown: itemTypes.map(type => ({
+      name: type.name,
+      icon: type.icon,
+      color: type.color,
+      count: type._count.items
+    })),
+  };
+});

@@ -70,7 +70,7 @@ export default async function DashboardLayout({
               </Button>
             </div>
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto">
+          <main className="flex flex-1 flex-col gap-4 p-4 pt-20 overflow-y-auto">
             <div className="min-h-full flex-1">
               {children}
             </div>
