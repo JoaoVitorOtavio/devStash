@@ -9,7 +9,7 @@ Desenvolvedores frequentemente dispersam informações essenciais em diversas fe
 Prover uma plataforma unificada onde todo o "arsenal" de um desenvolvedor esteja a um clique de distância, com organização por coleções, busca global e assistência de IA para sumarização e otimização.
 
 ## 🛠️ Tech Stack
-- **Framework:** Next.js 15+ (React 19)
+- **Framework:** Next.js 16.2.1 (React 19)
 - **Estilização:** Tailwind CSS v4 + ShadCN UI
 - **Banco de Dados:** PostgreSQL (Neon) + Prisma ORM
 - **Autenticação:** NextAuth.js v5

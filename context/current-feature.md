@@ -8,79 +8,22 @@ Not Started
 ## Notes
 
 ## History
-- 2026-07-08: Completed Profile Page:
-  - Implemented `/profile` route with user info, usage statistics, and account management.
-  - Created a unified 'Usage Statistics' card with dynamic item type breakdown and icons.
-  - Implemented a centered modal for password changes with an optimized UI.
-  - Integrated profile page into DashboardLayout for consistent navigation.
-  - Added delete account functionality with a destructive UI container.
-- 2026-06-28: Forgot Password Functionality:
-  - Add "Forgot Password?" link to the sign-in form.
-  - Create `/auth/forgot-password` page with modern floating card UI.
-  - Implement `forgotPassword` server action with secure token generation (reusing `VerificationToken` model) and email dispatch via Resend.
-  - Create `/auth/reset-password` page.
-  - Implement `resetPassword` server action with token validation and password hashing (bcryptjs).
-  - Add redirection to login page upon success.
-  - Renamed `src/lib` to `src/server` for better architectural clarity.
-- 2026-06-04: Toggle Email Verification:
-  - Added `NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION` environment variable to toggle the system.
-  - Updated registration API to skip token generation and email sending if verification is disabled.
-  - Automatically mark users as verified during registration if the toggle is off.
-  - Updated sign-in authorization logic to bypass the verification check when the system is disabled.
-  - Enhanced registration UI to show conditional success feedback based on verification status.
-- 2026-06-04: Setup Email Verification:
-  - Updated Prisma schema with `emailVerified` and `VerificationToken` model.
-  - Integrated `resend` library for sending verification emails.
-  - Implemented secure token generation and validation utilities.
-  - Created custom `/auth/verify` page and API route for token validation.
-  - Updated registration flow to send verification emails automatically.
-  - Added UI feedback for pending verification on the sign-in page.
-  - Prevented sign-in for users with unverified emails.
-  - Created `scripts/cleanup-db.ts` utility for database maintenance.
-- 2026-05-27: Fixed useSearchParams Suspense Error:
-  - Wrapped `SignInForm` in `src/app/sign-in/page.tsx` with a `<Suspense>` boundary.
-  - Wrapped `LoginToast` in `src/app/dashboard/layout.tsx` with a `<Suspense>` boundary.
-  - Resolved build error "useSearchParams() should be wrapped in a suspense boundary".
-- 2026-05-26: Completed Auth Phase 3 - Custom UI:
-  - Implemented custom Sign In and Register pages with a modern, "floating" card design.
-  - Enhanced UI aesthetics with refined background colors, deep shadows, and improved button contrasts.
-  - Integrated `sonner` for rich toast notifications during registration, login, and logout.
-  - Updated the application sidebar to display real-time user profile data (avatar, name, email) with a custom initials fallback.
-  - Implemented secure Sign Out functionality directly from the sidebar user menu.
-  - Added URL parameter cleanup and `useRef` guards to prevent duplicate toast notifications.
-- 2026-05-07: Completed Auth Phase 2 - Credentials & Registration:
-  - Added Credentials provider to `src/auth.config.ts` with field definitions (email, password) for the default UI.
-  - Implemented secure `authorize` logic in `src/auth.ts` using `bcryptjs` for password validation.
-  - Created registration API route at `src/app/api/auth/register/route.ts` with input validation and password hashing.
-  - Verified registration flow using `Invoke-RestMethod` and login flow via the default NextAuth sign-in page.
-  - Fixed an issue where the Credentials sign-in was failing due to missing field definitions in the configuration.
-- 2026-05-06: Completed Auth Phase 1 - NextAuth Setup:
-  - Installed `next-auth@beta` and `@auth/prisma-adapter`.
-  - Implemented split auth configuration (`src/auth.config.ts` and `src/auth.ts`) for Edge compatibility.
-  - Added GitHub OAuth provider.
-  - Created `src/proxy.ts` for route protection of `/dashboard/*` (Next.js 16).
-  - Extended Session type with `user.id` in `src/types/next-auth.d.ts`.
-  - Verified redirection logic from dashboard to sign-in page.
-- 2026-05-05: Completed Neon MCP Configuration:
-  - Added guidelines for using Neon MCP and `neonctl` in `GEMINI.md`.
-  - Specified default project and development branch.
-  - Set restrictions for production branch operations.
-- 2026-04-28: Completed Database Optimization & Caching:
-  - Optimized database queries in `src/lib/db/` to eliminate redundant user lookups.
-  - Implemented `React.cache` for data-fetching functions to ensure single database hits per request.
-  - Refactor functions to accept `userId` instead of `userEmail` where appropriate to reduce overhead.
-  - Updated `DashboardLayout` and `DashboardPage` to use the new optimized data fetching pattern.
-- 2026-04-23: Completed Add Pro Badge to Sidebar:
-  - Added "PRO" badge to "File" and "Image" item types in `AppSidebar`.
-  - Used ShadCN UI `Badge` component with `secondary` variant.
-  - Ensured badges are hidden when sidebar is collapsed.
-  - Added `capitalize` class to item type names for better presentation.
-- 2026-04-21: Completed Dashboard Empty States & Guest Fallbacks:
-  - Added empty state UI for `PinnedItems`, `RecentCollections`, and `RecentItems`.
-  - Implemented a Guest User fallback in `getUserProfile` when no user is found.
-  - Updated `AppSidebar` to show a "No collections yet" message.
-  - Refined database queries in `src/lib/db/items.ts` to handle guest/null users gracefully.
-  - Fixed potential null reference in `DashboardLayout`.
+- 2026-04-02: Completed Phase 1:
+  - Initialized ShadCN UI and dashboard scaffolding.
+- 2026-04-03: Completed Dashboard UI Phase 2 - Sidebar & Navigation:
+  - Implemented ShadCN sidebar with collapsible navigation and user avatar.
+- 2026-04-05: Completed Dashboard UI Phase 3:
+  - Created stats cards, pinned items, and recent items components.
+  - Implemented responsive grid layout for the dashboard.
+- 2026-04-06: Completed Database Implementation:
+  - Configured Prisma schema for Neon DB and ran initial migrations.
+- 2026-04-07: Completed Database Seeding:
+  - Created `prisma/seed.ts` and seeded demo user, system types, collections, and items.
+- 2026-04-07: Completed Dashboard Collections Integration:
+  - Replaced dummy collection data with actual data from Prisma.
+  - Created `src/lib/db/collections.ts` and `src/lib/db/stats.ts`.
+  - Implemented dynamic styling for collection cards based on content types.
+  - Refined UI with hover gradients and optimized layouts.
 - 2026-04-18: Completed Stats & Sidebar Integration:
   - Replaced dummy item data (pinned and recent) with Prisma/Neon DB data.
   - Implemented dynamic Sidebar with real user profile, item types, and collections.
@@ -90,19 +33,76 @@ Not Started
   - Show colored circle for recent collections based on their most-used item type.
   - Added "No collections yet" message when appropriate.
   - Dashboard layout now fetches recent collections and passes them to the sidebar.
-- 2026-04-07: Completed Dashboard Collections Integration:
-  - Replaced dummy collection data with actual data from Prisma.
-  - Created `src/lib/db/collections.ts` and `src/lib/db/stats.ts`.
-  - Implemented dynamic styling for collection cards based on content types.
-  - Refined UI with hover gradients and optimized layouts.
-- 2026-04-07: Completed Database Seeding:
-  - Created `prisma/seed.ts` and seeded demo user, system types, collections, and items.
-- 2026-04-06: Completed Database Implementation:
-  - Configured Prisma schema for Neon DB and ran initial migrations.
-- 2026-04-05: Completed Dashboard UI Phase 3:
-  - Created stats cards, pinned items, and recent items components.
-  - Implemented responsive grid layout for the dashboard.
-- 2026-04-03: Completed Dashboard UI Phase 2 - Sidebar & Navigation:
-  - Implemented ShadCN sidebar with collapsible navigation and user avatar.
-- 2026-04-02: Completed Phase 1:
-  - Initialized ShadCN UI and dashboard scaffolding.
+- 2026-04-21: Completed Dashboard Empty States & Guest Fallbacks:
+  - Added empty state UI for `PinnedItems`, `RecentCollections`, and `RecentItems`.
+  - Implemented a Guest User fallback in `getUserProfile` when no user is found.
+  - Updated `AppSidebar` to show a "No collections yet" message.
+  - Refined database queries in `src/lib/db/items.ts` to handle guest/null users gracefully.
+  - Fixed potential null reference in `DashboardLayout`.
+- 2026-04-23: Completed Add Pro Badge to Sidebar:
+  - Added "PRO" badge to "File" and "Image" item types in `AppSidebar`.
+  - Used ShadCN UI `Badge` component with `secondary` variant.
+  - Ensured badges are hidden when sidebar is collapsed.
+  - Added `capitalize` class to item type names for better presentation.
+- 2026-04-28: Completed Database Optimization & Caching:
+  - Optimized database queries in `src/lib/db/` to eliminate redundant user lookups.
+  - Implemented `React.cache` for data-fetching functions to ensure single database hits per request.
+  - Refactor functions to accept `userId` instead of `userEmail` where appropriate to reduce overhead.
+  - Updated `DashboardLayout` and `DashboardPage` to use the new optimized data fetching pattern.
+- 2026-05-05: Completed Neon MCP Configuration:
+  - Added guidelines for using Neon MCP and `neonctl` in `GEMINI.md`.
+  - Specified default project and development branch.
+  - Set restrictions for production branch operations.
+- 2026-05-06: Completed Auth Phase 1 - NextAuth Setup:
+  - Installed `next-auth@beta` and `@auth/prisma-adapter`.
+  - Implemented split auth configuration (`src/auth.config.ts` and `src/auth.ts`) for Edge compatibility.
+  - Added GitHub OAuth provider.
+  - Created `src/proxy.ts` for route protection of `/dashboard/*` (Next.js 16).
+  - Extended Session type with `user.id` in `src/types/next-auth.d.ts`.
+  - Verified redirection logic from dashboard to sign-in page.
+- 2026-05-07: Completed Auth Phase 2 - Credentials & Registration:
+  - Added Credentials provider to `src/auth.config.ts` with field definitions (email, password) for the default UI.
+  - Implemented secure `authorize` logic in `src/auth.ts` using `bcryptjs` for password validation.
+  - Created registration API route at `src/app/api/auth/register/route.ts` with input validation and password hashing.
+  - Verified registration flow using `Invoke-RestMethod` and login flow via the default NextAuth sign-in page.
+  - Fixed an issue where the Credentials sign-in was failing due to missing field definitions in the configuration.
+- 2026-05-26: Completed Auth Phase 3 - Custom UI:
+  - Implemented custom Sign In and Register pages with a modern, "floating" card design.
+  - Enhanced UI aesthetics with refined background colors, deep shadows, and improved button contrasts.
+  - Integrated `sonner` for rich toast notifications during registration, login, and logout.
+  - Updated the application sidebar to display real-time user profile data (avatar, name, email) with a custom initials fallback.
+  - Implemented secure Sign Out functionality directly from the sidebar user menu.
+  - Added URL parameter cleanup and `useRef` guards to prevent duplicate toast notifications.
+- 2026-05-27: Fixed useSearchParams Suspense Error:
+  - Wrapped `SignInForm` in `src/app/sign-in/page.tsx` with a `<Suspense>` boundary.
+  - Wrapped `LoginToast` in `src/app/dashboard/layout.tsx` with a `<Suspense>` boundary.
+  - Resolved build error "useSearchParams() should be wrapped in a suspense boundary".
+- 2026-06-04: Setup Email Verification:
+  - Updated Prisma schema with `emailVerified` and `VerificationToken` model.
+  - Integrated `resend` library for sending verification emails.
+  - Implemented secure token generation and validation utilities.
+  - Created custom `/auth/verify` page and API route for token validation.
+  - Updated registration flow to send verification emails automatically.
+  - Added UI feedback for pending verification on the sign-in page.
+  - Prevented sign-in for users with unverified emails.
+  - Created `scripts/cleanup-db.ts` utility for database maintenance.
+- 2026-06-04: Toggle Email Verification:
+  - Added `NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION` environment variable to toggle the system.
+  - Updated registration API to skip token generation and email sending if verification is disabled.
+  - Automatically mark users as verified during registration if the toggle is off.
+  - Updated sign-in authorization logic to bypass the verification check when the system is disabled.
+  - Enhanced registration UI to show conditional success feedback based on verification status.
+- 2026-06-28: Forgot Password Functionality:
+  - Add "Forgot Password?" link to the sign-in form.
+  - Create `/auth/forgot-password` page with modern floating card UI.
+  - Implement `forgotPassword` server action with secure token generation (reusing `VerificationToken` model) and email dispatch via Resend.
+  - Create `/auth/reset-password` page.
+  - Implement `resetPassword` server action with token validation and password hashing (bcryptjs).
+  - Add redirection to login page upon success.
+  - Renamed `src/lib` to `src/server` for better architectural clarity.
+- 2026-07-08: Completed Profile Page:
+  - Implemented `/profile` route with user info, usage statistics, and account management.
+  - Created a unified 'Usage Statistics' card with dynamic item type breakdown and icons.
+  - Implemented a centered modal for password changes with an optimized UI.
+  - Integrated profile page into DashboardLayout for consistent navigation.
+  - Added delete account functionality with a destructive UI container.

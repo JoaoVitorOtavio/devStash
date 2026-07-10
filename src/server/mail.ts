@@ -8,9 +8,6 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${domain}/auth/verify?token=${token}`;
   const html = `<p>Click <a href="${confirmLink}">here</a> to confirm email.</p>`;
 
-  console.log(`[Email Debug] Sending verification email to: ${email}`);
-  console.log(`[Email Debug] Content: ${html}`);
-
   await resend.emails.send({
     from: "DevStash <onboarding@resend.dev>",
     to: email,
@@ -22,9 +19,6 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${domain}/auth/reset-password?token=${token}`;
   const html = `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`;
-
-  console.log(`[Email Debug] Sending password reset email to: ${email}`);
-  console.log(`[Email Debug] Content: ${html}`);
 
   await resend.emails.send({
     from: "DevStash <onboarding@resend.dev>",
