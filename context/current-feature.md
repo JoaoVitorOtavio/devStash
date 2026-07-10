@@ -1,20 +1,16 @@
-# Current Feature: Items List View
+# Current Feature: Item List View Layout Update
 
 ## Status
 In Progress
 
 ## Goals
-- Create dynamic route `/items/[type]` (e.g., /items/snippets, /items/notes)
-- Fetch and display items filtered by item type
-- Implement a responsive grid of ItemCard components
-- Ensure the grid has two columns on medium screens and above
-- Each ItemCard should have a left border colored by the item type
-- Adhere to existing codebase patterns for data fetching and UI components
+- Update the items listing page grid to display 3 columns on larger screens.
+- Ensure the layout remains responsive (e.g., 1 column on mobile, 2 columns on medium screens, and 3 columns on large screens).
+- Maintain the current aesthetics and behavior of the `ItemCard` components.
 
 ## Notes
-- The route should be dynamic to handle any system or custom item type.
-- Use the existing `ItemCard` component (or create one if it doesn't exist) for displaying items.
-- The coloring should be driven by the `ItemType` color property from the database.
+- This change specifically affects the grid layout in `src/app/items/[type]/page.tsx`.
+- Use Tailwind CSS responsive modifiers (e.g., `lg:grid-cols-3`) to achieve the desired layout.
 
 
 ## History
@@ -116,3 +112,9 @@ In Progress
   - Implemented a centered modal for password changes with an optimized UI.
   - Integrated profile page into DashboardLayout for consistent navigation.
   - Added delete account functionality with a destructive UI container.
+- 2026-07-10: Completed Items List View:
+  - Created dynamic route /items/[type] for type-filtered item listings.
+  - Implemented a responsive grid of ItemCard components.
+  - Added dynamic left accent bars and full-border gradient hover effects to ItemCards.
+  - Implemented filtered data fetching by item type in server-side logic.
+  - Fixed sidebar navigation links to use type names instead of IDs.
