@@ -128,7 +128,7 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                   <SidebarMenuItem key={type.id}>
                     <SidebarMenuButton asChild tooltip={type.name}>
                       <Link
-                        href={`/items/${type.id}`}
+                        href={`/items/${type.name.toLowerCase()}`}
                         className="flex items-center gap-2 w-[200px] group-data-[collapsible=icon]:justify-center"
                         title={type.name}
                       >

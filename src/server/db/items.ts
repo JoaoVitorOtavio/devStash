@@ -109,3 +109,42 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
     updatedAt: item.updatedAt
   }));
 });
+
+export const getItemsByType = cache(async (userId: string, typeName: string) => {
+  if (userId === "guest-id") return [];
+
+  const items = await prisma.item.findMany({
+    where: {
+      userId,
+      type: {
+        name: typeName
+      }
+    },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      type: true,
+      tags: {
+        include: {
+          tag: true
+        }
+      }
+    }
+  });
+
+  return items.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    type: {
+      id: item.type.id,
+      name: item.type.name,
+      icon: item.type.icon,
+      color: item.type.color
+    },
+    tags: item.tags.map(it => it.tag.name),
+    isFavorite: item.isFavorite,
+    isPinned: item.isPinned,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt
+  }));
+});

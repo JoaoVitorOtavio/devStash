@@ -1,11 +1,21 @@
-# Current Feature
+# Current Feature: Items List View
 
 ## Status
-Not Started
+In Progress
 
 ## Goals
+- Create dynamic route `/items/[type]` (e.g., /items/snippets, /items/notes)
+- Fetch and display items filtered by item type
+- Implement a responsive grid of ItemCard components
+- Ensure the grid has two columns on medium screens and above
+- Each ItemCard should have a left border colored by the item type
+- Adhere to existing codebase patterns for data fetching and UI components
 
 ## Notes
+- The route should be dynamic to handle any system or custom item type.
+- Use the existing `ItemCard` component (or create one if it doesn't exist) for displaying items.
+- The coloring should be driven by the `ItemType` color property from the database.
+
 
 ## History
 - 2026-04-02: Completed Phase 1:
