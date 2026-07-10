@@ -7,12 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChangePasswordSection } from "@/components/profile/change-password-section";
 import { DeleteAccountButton } from "@/components/profile/delete-account-button";
 import DashboardLayout from "../dashboard/layout";
-import { LucideIcon } from "lucide-react";
 import * as Icons from "lucide-react";
 
 function getIcon(iconName?: string, fallbackColor = "text-muted-foreground"): React.ReactNode {
   if (!iconName) return <Icons.Circle className="w-4 h-4 opacity-50" />;
-  const IconComponent = (Icons as any)[iconName];
+  const IconComponent = (Icons as Record<string, unknown>)[iconName] as React.ComponentType<{ className?: string }> | undefined;
   if (!IconComponent) return <Icons.Circle className="w-4 h-4 opacity-50" />;
   return <IconComponent className={`w-4 h-4 ${fallbackColor}`} />;
 }
@@ -68,8 +67,8 @@ export default async function ProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {stats.itemTypeBreakdown.map(type => (
                     <div key={type.name} className="flex items-center gap-2 p-2 rounded-md border bg-muted/10">
-                      <span style={{ color: type.color }}>
-                        {getIcon(type.icon, type.color ? '' : 'text-muted-foreground')}
+                      <span style={{ color: type.color || undefined }}>
+                        {getIcon(type.icon || undefined, type.color ? '' : 'text-muted-foreground')}
                       </span>
                       <span className="text-sm flex-1 truncate">{type.name}</span>
                       <span className="text-sm font-semibold">{type.count}</span>

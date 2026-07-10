@@ -41,8 +41,18 @@ export function SignInForm() {
       cleanParams(["logout"]);
       hasShownToast.current = true;
     }
-    if (searchParams.get("error") === "OAuthSignin") {
-      toast.error("Error signing in with GitHub. Please try again.", { id: "oauth-error" });
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      if (errorParam === "OAuthAccountNotLinked") {
+        toast.error(
+          "An account with this email already exists. Please sign in with your email and password instead.",
+          { id: "oauth-link-error", duration: 6000 }
+        );
+      } else if (errorParam === "OAuthSignin") {
+        toast.error("Error signing in with GitHub. Please try again.", { id: "oauth-error" });
+      } else {
+        toast.error("Authentication error. Please try again.", { id: "general-auth-error" });
+      }
       cleanParams(["error"]);
       hasShownToast.current = true;
     }
