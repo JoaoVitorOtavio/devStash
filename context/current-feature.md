@@ -1,21 +1,11 @@
-# Current Feature: Items List View
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Create dynamic route `/items/[type]` (e.g., /items/snippets, /items/notes)
-- Fetch and display items filtered by item type
-- Implement a responsive grid of ItemCard components
-- Ensure the grid has two columns on medium screens and above
-- Each ItemCard should have a left border colored by the item type
-- Adhere to existing codebase patterns for data fetching and UI components
 
 ## Notes
-- The route should be dynamic to handle any system or custom item type.
-- Use the existing `ItemCard` component (or create one if it doesn't exist) for displaying items.
-- The coloring should be driven by the `ItemType` color property from the database.
-
 
 ## History
 - 2026-04-02: Completed Phase 1:
@@ -116,3 +106,17 @@ In Progress
   - Implemented a centered modal for password changes with an optimized UI.
   - Integrated profile page into DashboardLayout for consistent navigation.
   - Added delete account functionality with a destructive UI container.
+- 2026-07-10: Completed Items List View:
+  - Created dynamic route /items/[type] for type-filtered item listings.
+  - Implemented a responsive grid of ItemCard components.
+  - Added dynamic left accent bars and full-border gradient hover effects to ItemCards.
+  - Implemented filtered data fetching by item type in server-side logic.
+  - Fixed sidebar navigation links to use type names instead of IDs.
+- 2026-07-11: Completed Item Drawer:
+  - Added `getItemById` query with unit tests and a `GET /api/items/[id]` route with an auth check.
+  - Added `toggleItemFavorite`/`toggleItemPin` server actions with unit test coverage.
+  - Built `ItemDrawer` (shadcn Sheet, right side) with skeleton loading state, action bar (Favorite, Pin, Copy, Edit, Delete), and rendering for text content, file/image content, URLs, tags, and collection/language metadata.
+  - Created `ItemDrawerProvider`/`useItemDrawer` client context to manage drawer state from server-component pages, mounted once in `DashboardLayout` so it works on both the dashboard and `/items/[type]` pages.
+  - Wired click handlers into `ItemCard`, `PinnedItems`, and `RecentItems`.
+  - Added `router.refresh()` after Favorite/Pin toggles so background lists stay in sync.
+  - Edit and Delete are UI-only placeholders for now; full editor/extras are deferred to a future feature.

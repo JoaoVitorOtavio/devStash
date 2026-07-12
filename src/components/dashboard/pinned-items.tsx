@@ -1,7 +1,10 @@
+"use client";
+
 import { ChevronRight, Pin, Star } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
+import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 
 interface PinnedItem {
   id: string;
@@ -24,6 +27,8 @@ interface PinnedItemsProps {
 }
 
 export function PinnedItems({ items }: PinnedItemsProps) {
+  const { openItem } = useItemDrawer();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -57,8 +62,9 @@ export function PinnedItems({ items }: PinnedItemsProps) {
             const borderColor = item.type.color || 'var(--color-primary)';
             
             return (
-              <Card 
-                key={item.id} 
+              <Card
+                key={item.id}
+                onClick={() => openItem(item.id)}
                 className="group cursor-pointer transition-all duration-200 relative overflow-hidden border-transparent"
               >
                 <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: borderColor }} />

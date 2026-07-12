@@ -10,6 +10,7 @@ import {
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { LoginToast } from "@/components/auth/login-toast";
+import { ItemDrawerProvider } from "@/components/dashboard/item-drawer-context";
 import { getItemTypes } from "@/server/db/items";
 import { getAllCollections, getRecentCollections } from "@/server/db/collections";
 import { getUserProfile } from "@/server/db/user";
@@ -72,7 +73,7 @@ export default async function DashboardLayout({
           </header>
           <main className="flex flex-1 flex-col gap-4 p-4 pt-20 overflow-y-auto">
             <div className="min-h-full flex-1">
-              {children}
+              <ItemDrawerProvider>{children}</ItemDrawerProvider>
             </div>
           </main>
         </div>

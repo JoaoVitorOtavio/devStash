@@ -1,7 +1,10 @@
+"use client";
+
 import { ChevronRight, Clock, Star, MoreVertical, Plus } from "lucide-react";
 import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 
 interface RecentItem {
   id: string;
@@ -27,6 +30,8 @@ interface RecentItemsProps {
 }
 
 export function RecentItems({ items }: RecentItemsProps) {
+  const { openItem } = useItemDrawer();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -70,8 +75,9 @@ export function RecentItems({ items }: RecentItemsProps) {
                 const borderColor = item.type.color || 'var(--color-primary)';
                 
                 return (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
+                    onClick={() => openItem(item.id)}
                     className="group relative overflow-hidden grid grid-cols-[1fr_auto] md:grid-cols-[1fr_200px_150px_100px] gap-4 p-4 items-center hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: borderColor }} />
@@ -127,7 +133,12 @@ export function RecentItems({ items }: RecentItemsProps) {
                       <span className="text-xs text-muted-foreground hidden md:inline">
                         {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <MoreVertical className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
