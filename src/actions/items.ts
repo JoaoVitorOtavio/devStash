@@ -1,7 +1,23 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/prisma";
+import { updateItem as updateItemQuery } from "@/server/db/items";
+
+const updateItemSchema = z.object({
+  title: z.string().trim().min(1, "Title is required"),
+  description: z.string().nullable().optional().default(null),
+  content: z.string().nullable().optional().default(null),
+  url: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().url("Invalid URL").nullable().optional().default(null)
+  ),
+  language: z.string().nullable().optional().default(null),
+  tags: z.array(z.string().trim().min(1)).default([]),
+});
+
+export type UpdateItemPayload = z.input<typeof updateItemSchema>;
 
 export async function toggleItemFavorite(itemId: string) {
   const session = await auth();
@@ -31,4 +47,19 @@ export async function toggleItemPin(itemId: string) {
   });
 
   return { success: true, data: { isPinned: updated.isPinned } };
+}
+
+export async function updateItem(itemId: string, payload: UpdateItemPayload) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false as const, error: "Unauthorized" };
+
+  const parsed = updateItemSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const updated = await updateItemQuery(session.user.id, itemId, parsed.data);
+  if (!updated) return { success: false as const, error: "Item not found" };
+
+  return { success: true as const, data: updated };
 }

@@ -110,24 +110,35 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
   }));
 });
 
-export const getItemById = cache(async (userId: string, id: string) => {
-  if (userId === "guest-id") return null;
-
-  const item = await prisma.item.findUnique({
-    where: { id, userId },
+const itemDetailInclude = {
+  type: true,
+  collection: true,
+  tags: {
     include: {
-      type: true,
-      collection: true,
-      tags: {
-        include: {
-          tag: true
-        }
-      }
+      tag: true
     }
-  });
+  }
+} as const;
 
-  if (!item) return null;
-
+function mapItemDetail(item: {
+  id: string;
+  title: string;
+  description: string | null;
+  contentType: string;
+  content: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  url: string | null;
+  language: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  type: { id: string; name: string; icon: string | null; color: string | null };
+  collection: { id: string; name: string } | null;
+  tags: { tag: { name: string } }[];
+}) {
   return {
     id: item.id,
     title: item.title,
@@ -155,7 +166,63 @@ export const getItemById = cache(async (userId: string, id: string) => {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt
   };
+}
+
+export const getItemById = cache(async (userId: string, id: string) => {
+  if (userId === "guest-id") return null;
+
+  const item = await prisma.item.findUnique({
+    where: { id, userId },
+    include: itemDetailInclude
+  });
+
+  if (!item) return null;
+
+  return mapItemDetail(item);
 });
+
+export interface UpdateItemInput {
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+}
+
+export async function updateItem(userId: string, id: string, data: UpdateItemInput) {
+  const existing = await prisma.item.findUnique({ where: { id, userId } });
+  if (!existing) return null;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.item.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        content: data.content,
+        url: data.url,
+        language: data.language,
+      }
+    });
+
+    await tx.itemTag.deleteMany({ where: { itemId: id } });
+
+    for (const tagName of data.tags) {
+      const tag = await tx.tag.findFirst({ where: { userId, name: tagName } })
+        ?? await tx.tag.create({ data: { userId, name: tagName } });
+
+      await tx.itemTag.create({ data: { itemId: id, tagId: tag.id } });
+    }
+  });
+
+  const updated = await prisma.item.findUnique({
+    where: { id },
+    include: itemDetailInclude
+  });
+
+  return updated ? mapItemDetail(updated) : null;
+}
 
 export const getItemsByType = cache(async (userId: string, typeName: string) => {
   if (userId === "guest-id") return [];

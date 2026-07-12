@@ -1,18 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes, getItemById } from './items';
+import { getItemsByType, getItemTypes, getItemById, updateItem } from './items';
 import { prisma } from '@/server/prisma';
 
-vi.mock('@/server/prisma', () => ({
-  prisma: {
+vi.mock('@/server/prisma', () => {
+  const prismaMock = {
     item: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     itemType: {
       findMany: vi.fn(),
     },
-  },
-}));
+    tag: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
+    itemTag: {
+      deleteMany: vi.fn(),
+      create: vi.fn(),
+    },
+    $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(prismaMock)),
+  };
+
+  return { prisma: prismaMock };
+});
 
 describe('Items DB Utilities', () => {
   beforeEach(() => {
@@ -118,6 +130,96 @@ describe('Items DB Utilities', () => {
       const result = await getItemById('guest-id', 'item-1');
       expect(result).toBeNull();
       expect(prisma.item.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateItem', () => {
+    const updatedRow = {
+      id: 'item-1',
+      title: 'New Title',
+      description: null,
+      contentType: 'text',
+      content: 'new content',
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      url: null,
+      language: null,
+      isFavorite: false,
+      isPinned: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      type: { id: 'type-1', name: 'Snippet', icon: 'code', color: 'blue' },
+      collection: null,
+      tags: [{ tag: { name: 'new-tag' } }],
+    };
+
+    it('should return null when the item does not belong to the user', async () => {
+      (prisma.item.findUnique as any).mockResolvedValue(null);
+
+      const result = await updateItem('user-123', 'item-1', {
+        title: 'New Title',
+        description: null,
+        content: null,
+        url: null,
+        language: null,
+        tags: [],
+      });
+
+      expect(result).toBeNull();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should update scalar fields and replace tags for the owning user', async () => {
+      (prisma.item.findUnique as any)
+        .mockResolvedValueOnce({ id: 'item-1', userId: 'user-123' })
+        .mockResolvedValueOnce(updatedRow);
+      (prisma.tag.findFirst as any).mockResolvedValue(null);
+      (prisma.tag.create as any).mockResolvedValue({ id: 'tag-1', name: 'new-tag' });
+
+      const result = await updateItem('user-123', 'item-1', {
+        title: 'New Title',
+        description: null,
+        content: 'new content',
+        url: null,
+        language: null,
+        tags: ['new-tag'],
+      });
+
+      expect(prisma.item.update).toHaveBeenCalledWith({
+        where: { id: 'item-1' },
+        data: {
+          title: 'New Title',
+          description: null,
+          content: 'new content',
+          url: null,
+          language: null,
+        },
+      });
+      expect(prisma.itemTag.deleteMany).toHaveBeenCalledWith({ where: { itemId: 'item-1' } });
+      expect(prisma.tag.create).toHaveBeenCalledWith({ data: { userId: 'user-123', name: 'new-tag' } });
+      expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'tag-1' } });
+      expect(result?.title).toBe('New Title');
+      expect(result?.tags).toEqual(['new-tag']);
+    });
+
+    it('should reuse an existing tag instead of creating a duplicate', async () => {
+      (prisma.item.findUnique as any)
+        .mockResolvedValueOnce({ id: 'item-1', userId: 'user-123' })
+        .mockResolvedValueOnce(updatedRow);
+      (prisma.tag.findFirst as any).mockResolvedValue({ id: 'existing-tag', name: 'new-tag' });
+
+      await updateItem('user-123', 'item-1', {
+        title: 'New Title',
+        description: null,
+        content: null,
+        url: null,
+        language: null,
+        tags: ['new-tag'],
+      });
+
+      expect(prisma.tag.create).not.toHaveBeenCalled();
+      expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'existing-tag' } });
     });
   });
 });

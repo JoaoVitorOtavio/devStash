@@ -15,9 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { getIcon } from "@/server/icons";
 import { cn } from "@/server/utils";
-import { toggleItemFavorite, toggleItemPin } from "@/actions/items";
+import { toggleItemFavorite, toggleItemPin, updateItem } from "@/actions/items";
+
+const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
+const LANGUAGE_TYPES = ["snippet", "command"];
+const URL_TYPES = ["link"];
 
 interface ItemDetail {
   id: string;
@@ -53,10 +59,33 @@ interface ItemDrawerProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface EditForm {
+  title: string;
+  description: string;
+  content: string;
+  url: string;
+  language: string;
+  tags: string;
+}
+
+function toEditForm(item: ItemDetail): EditForm {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    content: item.content ?? "",
+    url: item.url ?? "",
+    language: item.language ?? "",
+    tags: item.tags.join(", "),
+  };
+}
+
 export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
   const router = useRouter();
   const [item, setItem] = useState<ItemDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [form, setForm] = useState<EditForm | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open || !itemId) return;
@@ -64,6 +93,8 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
     let cancelled = false;
     setLoading(true);
     setItem(null);
+    setMode("view");
+    setForm(null);
 
     fetch(`/api/items/${itemId}`)
       .then((res) => {
@@ -118,7 +149,49 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
   }
 
   function handleEdit() {
-    toast.info("Editing is coming soon.");
+    if (!item) return;
+    setForm(toEditForm(item));
+    setMode("edit");
+  }
+
+  function handleCancelEdit() {
+    setForm(null);
+    setMode("view");
+  }
+
+  async function handleSave() {
+    if (!item || !form) return;
+
+    setSaving(true);
+    const tags = form.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    const result = await updateItem(item.id, {
+      title: form.title,
+      description: form.description || null,
+      content: form.content || null,
+      url: form.url || null,
+      language: form.language || null,
+      tags,
+    });
+    setSaving(false);
+
+    if (!result.success) {
+      toast.error(result.error ?? "Failed to save changes.");
+      return;
+    }
+
+    setItem({
+      ...result.data,
+      createdAt: new Date(result.data.createdAt).toISOString(),
+      updatedAt: new Date(result.data.updatedAt).toISOString(),
+    });
+    setForm(null);
+    setMode("view");
+    toast.success("Item updated.");
+    router.refresh();
   }
 
   function handleDelete() {
@@ -126,6 +199,10 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
   }
 
   const Icon = item ? getIcon(item.type.icon || "file") : null;
+  const typeName = item?.type.name.toLowerCase() ?? "";
+  const showContent = CONTENT_TYPES.includes(typeName);
+  const showLanguage = LANGUAGE_TYPES.includes(typeName);
+  const showUrl = URL_TYPES.includes(typeName);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -159,30 +236,130 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
               </div>
             </SheetHeader>
 
-            <div className="mt-4 flex items-center gap-1 border-y py-2">
-              <Button variant="ghost" size="icon" onClick={handleToggleFavorite} aria-label="Toggle favorite">
-                <Star className={cn("h-4 w-4", item.isFavorite && "fill-yellow-400 text-yellow-400")} />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleTogglePin} aria-label="Toggle pin">
-                <Pin className={cn("h-4 w-4", item.isPinned && "fill-amber-500 text-amber-500")} />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleCopy} disabled={!item.content} aria-label="Copy content">
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleEdit} aria-label="Edit item">
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDelete}
-                className="ml-auto text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                aria-label="Delete item"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {mode === "edit" ? (
+              <div className="mt-4 flex items-center justify-end gap-2 border-y py-2">
+                <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={saving}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving || !form?.title.trim()}>
+                  {saving ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-4 flex items-center gap-1 border-y py-2">
+                <Button variant="ghost" size="icon" onClick={handleToggleFavorite} aria-label="Toggle favorite">
+                  <Star className={cn("h-4 w-4", item.isFavorite && "fill-yellow-400 text-yellow-400")} />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleTogglePin} aria-label="Toggle pin">
+                  <Pin className={cn("h-4 w-4", item.isPinned && "fill-amber-500 text-amber-500")} />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleCopy} disabled={!item.content} aria-label="Copy content">
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleEdit} aria-label="Edit item">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleDelete}
+                  className="ml-auto text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                  aria-label="Delete item"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
 
+            {mode === "edit" && form ? (
+              <div className="mt-4 space-y-4 flex-1">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Title</label>
+                  <Input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Title"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Description</label>
+                  <Textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Description"
+                    rows={2}
+                  />
+                </div>
+
+                {showContent && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Content</label>
+                    <Textarea
+                      value={form.content}
+                      onChange={(e) => setForm({ ...form, content: e.target.value })}
+                      placeholder="Content"
+                      rows={8}
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                )}
+
+                {showLanguage && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Language</label>
+                    <Input
+                      value={form.language}
+                      onChange={(e) => setForm({ ...form, language: e.target.value })}
+                      placeholder="e.g. javascript"
+                    />
+                  </div>
+                )}
+
+                {showUrl && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">URL</label>
+                    <Input
+                      value={form.url}
+                      onChange={(e) => setForm({ ...form, url: e.target.value })}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Tags</label>
+                  <Input
+                    value={form.tags}
+                    onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                    placeholder="tag1, tag2, tag3"
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2 text-xs text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Type</span>
+                    <span className="capitalize">{item.type.name}</span>
+                  </div>
+                  {item.collection && (
+                    <div className="flex justify-between">
+                      <span>Collection</span>
+                      <Badge variant="secondary" className="font-normal">{item.collection.name}</Badge>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Created</span>
+                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Updated</span>
+                    <span>{new Date(item.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
             <div className="mt-4 space-y-4 flex-1">
               {item.description && (
                 <p className="text-sm text-muted-foreground">{item.description}</p>
@@ -265,6 +442,7 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                 </div>
               </div>
             </div>
+            )}
           </div>
         )}
       </SheetContent>

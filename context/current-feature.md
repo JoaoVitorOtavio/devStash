@@ -8,6 +8,14 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-11: Completed Item Drawer — Edit Mode:
+  - Added inline edit mode to the `ItemDrawer`: pencil button toggles the action bar into Save/Cancel, all in the same drawer.
+  - Editable for all types: Title (required), Description, Tags (comma-separated → array). Type-specific fields shown conditionally: Content (snippet/prompt/command/note), Language (snippet/command), URL (link).
+  - Save disabled client-side when title is empty; type, collection, and created/updated dates shown read-only in edit mode.
+  - Added `updateItem(itemId, data)` server action in `src/actions/items.ts` with Zod validation and the `{ success, data, error }` pattern.
+  - Added `updateItem` query in `src/server/db/items.ts`: transactional scalar field update plus tag replacement (disconnect all, connect-or-create), returning the full `ItemDetail`.
+  - Unit test coverage for both the action and the query (auth, validation, ownership, tag reuse vs. creation).
+  - Set up Playwright E2E testing infra (`playwright.config.ts`, `e2e/item-drawer-edit.spec.ts`, `npm run test:e2e`) covering the edit/save and cancel flows against the running dev server.
 - 2026-04-02: Completed Phase 1:
   - Initialized ShadCN UI and dashboard scaffolding.
 - 2026-04-03: Completed Dashboard UI Phase 2 - Sidebar & Navigation:
