@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes } from './items';
+import { getItemsByType, getItemTypes, getItemById } from './items';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => ({
   prisma: {
     item: {
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     itemType: {
       findMany: vi.fn(),
@@ -73,6 +74,50 @@ describe('Items DB Utilities', () => {
       const result = await getItemsByType('guest-id', 'Snippet');
       expect(result).toEqual([]);
       expect(prisma.item.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getItemById', () => {
+    it('should return full item detail for the owning user', async () => {
+      const mockItem = {
+        id: 'item-1',
+        title: 'Test Item',
+        description: 'Desc',
+        contentType: 'text',
+        content: 'console.log("hi")',
+        fileUrl: null,
+        fileName: null,
+        fileSize: null,
+        url: null,
+        language: 'javascript',
+        userId: 'user-123',
+        isFavorite: false,
+        isPinned: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        type: { id: 'type-1', name: 'Snippet', icon: 'code', color: 'blue' },
+        collection: { id: 'col-1', name: 'React Patterns' },
+        tags: [{ tag: { name: 'tag1' } }],
+      };
+      (prisma.item.findUnique as any).mockResolvedValue(mockItem);
+
+      const result = await getItemById('user-123', 'item-1');
+      expect(result?.title).toBe('Test Item');
+      expect(result?.tags).toEqual(['tag1']);
+      expect(result?.collection).toEqual({ id: 'col-1', name: 'React Patterns' });
+    });
+
+    it('should return null when the item does not exist', async () => {
+      (prisma.item.findUnique as any).mockResolvedValue(null);
+
+      const result = await getItemById('user-123', 'missing-id');
+      expect(result).toBeNull();
+    });
+
+    it('should return null for guest users without querying the database', async () => {
+      const result = await getItemById('guest-id', 'item-1');
+      expect(result).toBeNull();
+      expect(prisma.item.findUnique).not.toHaveBeenCalled();
     });
   });
 });

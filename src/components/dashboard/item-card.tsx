@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/server/utils"; // Assuming cn is available in utils
+import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 
 interface ItemCardProps {
   item: {
@@ -20,14 +21,16 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item }: ItemCardProps) {
+  const { openItem } = useItemDrawer();
   const accentColor = item.type.color || 'var(--border)';
   const gradient = `linear-gradient(to bottom, ${accentColor}, ${accentColor}aa)`;
-  
+
   return (
-    <Card 
+    <Card
+      onClick={() => openItem(item.id)}
       className={cn(
-        "group relative overflow-hidden transition-all duration-300 hover:shadow-md border-transparent",
-      )} 
+        "group relative overflow-hidden transition-all duration-300 hover:shadow-md border-transparent cursor-pointer",
+      )}
     >
       {/* Full Border Gradient Overlay on Hover */}
       <div 

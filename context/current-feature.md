@@ -1,17 +1,11 @@
-# Current Feature: Item List View Layout Update
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Update the items listing page grid to display 3 columns on larger screens.
-- Ensure the layout remains responsive (e.g., 1 column on mobile, 2 columns on medium screens, and 3 columns on large screens).
-- Maintain the current aesthetics and behavior of the `ItemCard` components.
 
 ## Notes
-- This change specifically affects the grid layout in `src/app/items/[type]/page.tsx`.
-- Use Tailwind CSS responsive modifiers (e.g., `lg:grid-cols-3`) to achieve the desired layout.
-
 
 ## History
 - 2026-04-02: Completed Phase 1:
@@ -118,3 +112,11 @@ In Progress
   - Added dynamic left accent bars and full-border gradient hover effects to ItemCards.
   - Implemented filtered data fetching by item type in server-side logic.
   - Fixed sidebar navigation links to use type names instead of IDs.
+- 2026-07-11: Completed Item Drawer:
+  - Added `getItemById` query with unit tests and a `GET /api/items/[id]` route with an auth check.
+  - Added `toggleItemFavorite`/`toggleItemPin` server actions with unit test coverage.
+  - Built `ItemDrawer` (shadcn Sheet, right side) with skeleton loading state, action bar (Favorite, Pin, Copy, Edit, Delete), and rendering for text content, file/image content, URLs, tags, and collection/language metadata.
+  - Created `ItemDrawerProvider`/`useItemDrawer` client context to manage drawer state from server-component pages, mounted once in `DashboardLayout` so it works on both the dashboard and `/items/[type]` pages.
+  - Wired click handlers into `ItemCard`, `PinnedItems`, and `RecentItems`.
+  - Added `router.refresh()` after Favorite/Pin toggles so background lists stay in sync.
+  - Edit and Delete are UI-only placeholders for now; full editor/extras are deferred to a future feature.
