@@ -224,6 +224,18 @@ export async function updateItem(userId: string, id: string, data: UpdateItemInp
   return updated ? mapItemDetail(updated) : null;
 }
 
+export async function deleteItem(userId: string, id: string) {
+  const existing = await prisma.item.findUnique({ where: { id, userId } });
+  if (!existing) return false;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.itemTag.deleteMany({ where: { itemId: id } });
+    await tx.item.delete({ where: { id } });
+  });
+
+  return true;
+}
+
 export const getItemsByType = cache(async (userId: string, typeName: string) => {
   if (userId === "guest-id") return [];
 

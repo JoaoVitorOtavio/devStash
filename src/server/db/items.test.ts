@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes, getItemById, updateItem } from './items';
+import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem } from './items';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => {
@@ -8,6 +8,7 @@ vi.mock('@/server/prisma', () => {
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
     itemType: {
       findMany: vi.fn(),
@@ -220,6 +221,27 @@ describe('Items DB Utilities', () => {
 
       expect(prisma.tag.create).not.toHaveBeenCalled();
       expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'existing-tag' } });
+    });
+  });
+
+  describe('deleteItem', () => {
+    it('should return false when the item does not belong to the user', async () => {
+      (prisma.item.findUnique as any).mockResolvedValue(null);
+
+      const result = await deleteItem('user-123', 'item-1');
+
+      expect(result).toBe(false);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should delete the item and its tags for the owning user', async () => {
+      (prisma.item.findUnique as any).mockResolvedValue({ id: 'item-1', userId: 'user-123' });
+
+      const result = await deleteItem('user-123', 'item-1');
+
+      expect(prisma.itemTag.deleteMany).toHaveBeenCalledWith({ where: { itemId: 'item-1' } });
+      expect(prisma.item.delete).toHaveBeenCalledWith({ where: { id: 'item-1' } });
+      expect(result).toBe(true);
     });
   });
 });

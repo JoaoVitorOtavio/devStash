@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/prisma";
-import { updateItem as updateItemQuery } from "@/server/db/items";
+import { updateItem as updateItemQuery, deleteItem as deleteItemQuery } from "@/server/db/items";
 
 const updateItemSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -62,4 +62,14 @@ export async function updateItem(itemId: string, payload: UpdateItemPayload) {
   if (!updated) return { success: false as const, error: "Item not found" };
 
   return { success: true as const, data: updated };
+}
+
+export async function deleteItem(itemId: string) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: Boolean(false), error: "Unauthorized" };
+
+  const deleted = await deleteItemQuery(session.user.id, itemId);
+  if (!deleted) return { success: Boolean(false), error: "Item not found" };
+
+  return { success: Boolean(true) };
 }

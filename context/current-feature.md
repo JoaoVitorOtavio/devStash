@@ -8,6 +8,14 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-13: Completed Delete Item Functionality:
+  - Added `deleteItem(userId, id)` query in `src/server/db/items.ts`: ownership check, removes tags then the item in a transaction.
+  - Added `deleteItem(itemId)` server action in `src/actions/items.ts` with auth/ownership checks and the `{ success, error }` pattern.
+  - Added shadcn `AlertDialog` UI primitive (`src/components/ui/alert-dialog.tsx`) and installed `@radix-ui/react-alert-dialog`.
+  - Wired the `ItemDrawer` Delete button to open the confirmation dialog; on confirm, calls the action, shows a success/error toast, closes the drawer, and calls `router.refresh()`.
+  - Styled the confirmation dialog with `bg-popover`/`text-popover-foreground` so it's visually distinct from the page background in dark mode.
+  - Unit test coverage for both the action and the query (auth, ownership, not-found, success cases).
+  - Verified end-to-end in the browser via Playwright MCP against the dev server (login, open item, confirm delete, toast, list/counters update, no console errors).
 - 2026-07-11: Completed Item Drawer — Edit Mode:
   - Added inline edit mode to the `ItemDrawer`: pencil button toggles the action bar into Save/Cancel, all in the same drawer.
   - Editable for all types: Title (required), Description, Tags (comma-separated → array). Type-specific fields shown conditionally: Content (snippet/prompt/command/note), Language (snippet/command), URL (link).

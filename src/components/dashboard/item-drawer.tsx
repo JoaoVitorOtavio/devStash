@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Star, Pin, Copy, Pencil, Trash2 } from "lucide-react";
@@ -11,6 +11,16 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getIcon } from "@/server/icons";
 import { cn } from "@/server/utils";
-import { toggleItemFavorite, toggleItemPin, updateItem } from "@/actions/items";
+import { toggleItemFavorite, toggleItemPin, updateItem, deleteItem } from "@/actions/items";
 
 const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES = ["snippet", "command"];
@@ -86,6 +96,8 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [form, setForm] = useState<EditForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!open || !itemId) return;
@@ -194,8 +206,26 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
     router.refresh();
   }
 
-  function handleDelete() {
-    toast.info("Deleting is coming soon.");
+  async function handleConfirmDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    if (!item) return;
+
+    setDeleting(true);
+    try {
+      const result = await deleteItem(item.id);
+
+      if (!result.success) {
+        toast.error(result.error ?? "Failed to delete item.");
+        return;
+      }
+
+      setDeleteDialogOpen(false);
+      toast.success("Item deleted.");
+      onOpenChange(false);
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const Icon = item ? getIcon(item.type.icon || "file") : null;
@@ -262,7 +292,7 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={handleDelete}
+                  onClick={() => setDeleteDialogOpen(true)}
                   className="ml-auto text-red-500 hover:text-red-400 hover:bg-red-500/10"
                   aria-label="Delete item"
                 >
@@ -446,6 +476,27 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
           </div>
         )}
       </SheetContent>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-popover text-popover-foreground">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete &quot;{item?.title}&quot;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
