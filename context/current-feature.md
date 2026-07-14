@@ -8,6 +8,15 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-14: Completed Item Create:
+  - Added shadcn `Dialog` (`src/components/ui/dialog.tsx`) and `Select` (`src/components/ui/select.tsx`) UI primitives, installing `@radix-ui/react-select`.
+  - Added `createItem` query in `src/server/db/items.ts`: resolves the type by name (system or user-owned, case-insensitive), creates the item plus tags in a transaction, returns the full `ItemDetail`.
+  - Added `createItem` server action in `src/actions/items.ts` with Zod validation (per-type conditional fields, `superRefine` requiring a URL for the link type) and the `{ success, data, error }` pattern.
+  - Built `ItemCreateDialog` (shadcn `Dialog`) with a type selector (snippet/prompt/command/note/link, each with its icon and color) and fields shown conditionally per type; wired via `ItemCreateButton` replacing the static "New Item" button in `DashboardLayout`.
+  - Toast on success, closes the dialog, resets the form, and calls `router.refresh()`.
+  - Unit test coverage for both the action and the query (auth, validation, invalid type, URL-required-for-link, tag reuse vs. creation).
+  - Verified end-to-end in the browser via Playwright MCP: created a snippet, a link, and a note; confirmed conditional fields per type, required-URL validation blocking submission, sidebar/dashboard counters updating, and no console errors.
+  - Fixed a UX bug found during verification: `DialogContent` had no max-height/scroll, so the Create button could sit outside the viewport on smaller windows — added `max-h-[90vh] overflow-y-auto`.
 - 2026-07-13: Completed Delete Item Functionality:
   - Added `deleteItem(userId, id)` query in `src/server/db/items.ts`: ownership check, removes tags then the item in a transaction.
   - Added `deleteItem(itemId)` server action in `src/actions/items.ts` with auth/ownership checks and the `{ success, error }` pattern.
