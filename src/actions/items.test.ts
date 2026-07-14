@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { toggleItemFavorite, toggleItemPin, updateItem } from './items';
+import { toggleItemFavorite, toggleItemPin, updateItem, deleteItem } from './items';
 import { auth } from '@/auth';
 import { prisma } from '@/server/prisma';
-import { updateItem as updateItemQuery } from '@/server/db/items';
+import { updateItem as updateItemQuery, deleteItem as deleteItemQuery } from '@/server/db/items';
 
 vi.mock('@/auth', () => ({
   auth: vi.fn(),
@@ -19,6 +19,7 @@ vi.mock('@/server/prisma', () => ({
 
 vi.mock('@/server/db/items', () => ({
   updateItem: vi.fn(),
+  deleteItem: vi.fn(),
 }));
 
 describe('Items Server Actions', () => {
@@ -171,6 +172,36 @@ describe('Items Server Actions', () => {
         tags: ['tag1'],
       });
       expect(result).toEqual({ success: true, data: updated });
+    });
+  });
+
+  describe('deleteItem', () => {
+    it('should return unauthorized when there is no session', async () => {
+      (auth as any).mockResolvedValue(null);
+
+      const result = await deleteItem('item-1');
+
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
+      expect(deleteItemQuery).not.toHaveBeenCalled();
+    });
+
+    it('should return not found when the query returns false', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+      (deleteItemQuery as any).mockResolvedValue(false);
+
+      const result = await deleteItem('item-1');
+
+      expect(result).toEqual({ success: false, error: 'Item not found' });
+    });
+
+    it('should delete the item for the owning user', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+      (deleteItemQuery as any).mockResolvedValue(true);
+
+      const result = await deleteItem('item-1');
+
+      expect(deleteItemQuery).toHaveBeenCalledWith('user-123', 'item-1');
+      expect(result).toEqual({ success: true });
     });
   });
 });
