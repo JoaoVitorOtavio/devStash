@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Search, Plus, FolderPlus } from "lucide-react";
+import { Search, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +11,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { LoginToast } from "@/components/auth/login-toast";
 import { ItemDrawerProvider } from "@/components/dashboard/item-drawer-context";
+import { ItemCreateButton } from "@/components/dashboard/item-create-button";
 import { getItemTypes } from "@/server/db/items";
 import { getAllCollections, getRecentCollections } from "@/server/db/collections";
 import { getUserProfile } from "@/server/db/user";
@@ -65,10 +66,7 @@ export default async function DashboardLayout({
                 <FolderPlus className="h-4 w-4 mr-2" />
                 <span>New Collection</span>
               </Button>
-              <Button size="sm" className="h-9">
-                <Plus className="h-4 w-4 mr-2" />
-                <span>New Item</span>
-              </Button>
+              <ItemCreateButton />
             </div>
           </header>
           <main className="flex flex-1 flex-col gap-4 p-4 pt-20 overflow-y-auto">

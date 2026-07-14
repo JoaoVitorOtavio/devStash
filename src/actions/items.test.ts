@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { toggleItemFavorite, toggleItemPin, updateItem, deleteItem } from './items';
+import { toggleItemFavorite, toggleItemPin, updateItem, deleteItem, createItem } from './items';
 import { auth } from '@/auth';
 import { prisma } from '@/server/prisma';
-import { updateItem as updateItemQuery, deleteItem as deleteItemQuery } from '@/server/db/items';
+import {
+  updateItem as updateItemQuery,
+  deleteItem as deleteItemQuery,
+  createItem as createItemQuery,
+} from '@/server/db/items';
 
 vi.mock('@/auth', () => ({
   auth: vi.fn(),
@@ -20,6 +24,7 @@ vi.mock('@/server/prisma', () => ({
 vi.mock('@/server/db/items', () => ({
   updateItem: vi.fn(),
   deleteItem: vi.fn(),
+  createItem: vi.fn(),
 }));
 
 describe('Items Server Actions', () => {
@@ -172,6 +177,85 @@ describe('Items Server Actions', () => {
         tags: ['tag1'],
       });
       expect(result).toEqual({ success: true, data: updated });
+    });
+  });
+
+  describe('createItem', () => {
+    const validPayload = {
+      type: 'snippet' as const,
+      title: 'New Item',
+      description: null,
+      content: 'console.log(1)',
+      url: null,
+      language: 'javascript',
+      tags: ['tag1'],
+    };
+
+    it('should return unauthorized when there is no session', async () => {
+      (auth as any).mockResolvedValue(null);
+
+      const result = await createItem(validPayload);
+
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it('should reject an empty title', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+
+      const result = await createItem({ ...validPayload, title: '   ' });
+
+      expect(result.success).toBe(false);
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it('should require a URL for the link type', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+
+      const result = await createItem({ ...validPayload, type: 'link', url: null });
+
+      expect(result.success).toBe(false);
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it('should treat an empty URL string as null for non-link types', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+      (createItemQuery as any).mockResolvedValue({ id: 'item-1', title: 'New Item' });
+
+      await createItem({ ...validPayload, url: '' });
+
+      expect(createItemQuery).toHaveBeenCalledWith(
+        'user-123',
+        expect.objectContaining({ url: null })
+      );
+    });
+
+    it('should return an error when the type is invalid', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+      (createItemQuery as any).mockResolvedValue(null);
+
+      const result = await createItem(validPayload);
+
+      expect(result).toEqual({ success: false, error: 'Invalid item type' });
+    });
+
+    it('should create the item for the authenticated user', async () => {
+      (auth as any).mockResolvedValue({ user: { id: 'user-123' } });
+      const created = { id: 'item-1', title: 'New Item', tags: ['tag1'] };
+      (createItemQuery as any).mockResolvedValue(created);
+
+      const result = await createItem(validPayload);
+
+      expect(createItemQuery).toHaveBeenCalledWith('user-123', {
+        typeName: 'snippet',
+        title: 'New Item',
+        description: null,
+        content: 'console.log(1)',
+        url: null,
+        language: 'javascript',
+        tags: ['tag1'],
+      });
+      expect(result).toEqual({ success: true, data: created });
     });
   });
 

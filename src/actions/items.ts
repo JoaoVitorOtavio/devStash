@@ -3,7 +3,34 @@
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/server/prisma";
-import { updateItem as updateItemQuery, deleteItem as deleteItemQuery } from "@/server/db/items";
+import {
+  updateItem as updateItemQuery,
+  deleteItem as deleteItemQuery,
+  createItem as createItemQuery,
+} from "@/server/db/items";
+
+const ITEM_TYPE_NAMES = ["snippet", "prompt", "command", "note", "link"] as const;
+
+const createItemSchema = z
+  .object({
+    type: z.enum(ITEM_TYPE_NAMES),
+    title: z.string().trim().min(1, "Title is required"),
+    description: z.string().nullable().optional().default(null),
+    content: z.string().nullable().optional().default(null),
+    url: z.preprocess(
+      (v) => (v === "" ? null : v),
+      z.string().url("Invalid URL").nullable().optional().default(null)
+    ),
+    language: z.string().nullable().optional().default(null),
+    tags: z.array(z.string().trim().min(1)).default([]),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === "link" && !data.url) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "URL is required", path: ["url"] });
+    }
+  });
+
+export type CreateItemPayload = z.input<typeof createItemSchema>;
 
 const updateItemSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -62,6 +89,22 @@ export async function updateItem(itemId: string, payload: UpdateItemPayload) {
   if (!updated) return { success: false as const, error: "Item not found" };
 
   return { success: true as const, data: updated };
+}
+
+export async function createItem(payload: CreateItemPayload) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: Boolean(false), error: "Unauthorized" };
+
+  const parsed = createItemSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: Boolean(false), error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { type, ...rest } = parsed.data;
+  const created = await createItemQuery(session.user.id, { typeName: type, ...rest });
+  if (!created) return { success: Boolean(false), error: "Invalid item type" };
+
+  return { success: Boolean(true), data: created };
 }
 
 export async function deleteItem(itemId: string) {

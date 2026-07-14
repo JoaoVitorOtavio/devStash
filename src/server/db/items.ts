@@ -224,6 +224,57 @@ export async function updateItem(userId: string, id: string, data: UpdateItemInp
   return updated ? mapItemDetail(updated) : null;
 }
 
+export interface CreateItemInput {
+  typeName: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+}
+
+export async function createItem(userId: string, data: CreateItemInput) {
+  const type = await prisma.itemType.findFirst({
+    where: {
+      name: { equals: data.typeName, mode: "insensitive" },
+      OR: [{ isSystem: true }, { userId }],
+    },
+  });
+  if (!type) return null;
+
+  const created = await prisma.$transaction(async (tx) => {
+    const item = await tx.item.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        content: data.content,
+        url: data.url,
+        language: data.language,
+        contentType: "text",
+        userId,
+        typeId: type.id,
+      },
+    });
+
+    for (const tagName of data.tags) {
+      const tag = await tx.tag.findFirst({ where: { userId, name: tagName } })
+        ?? await tx.tag.create({ data: { userId, name: tagName } });
+
+      await tx.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+    }
+
+    return item;
+  });
+
+  const full = await prisma.item.findUnique({
+    where: { id: created.id },
+    include: itemDetailInclude,
+  });
+
+  return full ? mapItemDetail(full) : null;
+}
+
 export async function deleteItem(userId: string, id: string) {
   const existing = await prisma.item.findUnique({ where: { id, userId } });
   if (!existing) return false;

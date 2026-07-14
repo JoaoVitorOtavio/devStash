@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem } from './items';
+import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem } from './items';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => {
@@ -9,9 +9,11 @@ vi.mock('@/server/prisma', () => {
       findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      create: vi.fn(),
     },
     itemType: {
       findMany: vi.fn(),
+      findFirst: vi.fn(),
     },
     tag: {
       findFirst: vi.fn(),
@@ -217,6 +219,100 @@ describe('Items DB Utilities', () => {
         url: null,
         language: null,
         tags: ['new-tag'],
+      });
+
+      expect(prisma.tag.create).not.toHaveBeenCalled();
+      expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'existing-tag' } });
+    });
+  });
+
+  describe('createItem', () => {
+    const createdRow = {
+      id: 'item-1',
+      title: 'New Item',
+      description: null,
+      contentType: 'text',
+      content: 'console.log(1)',
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      url: null,
+      language: 'javascript',
+      isFavorite: false,
+      isPinned: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      type: { id: 'type-1', name: 'Snippet', icon: 'code', color: 'blue' },
+      collection: null,
+      tags: [{ tag: { name: 'tag1' } }],
+    };
+
+    it('should return null when the item type does not exist for the user', async () => {
+      (prisma.itemType.findFirst as any).mockResolvedValue(null);
+
+      const result = await createItem('user-123', {
+        typeName: 'snippet',
+        title: 'New Item',
+        description: null,
+        content: null,
+        url: null,
+        language: null,
+        tags: [],
+      });
+
+      expect(result).toBeNull();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should create the item and its tags for the authenticated user', async () => {
+      (prisma.itemType.findFirst as any).mockResolvedValue({ id: 'type-1', name: 'Snippet' });
+      (prisma.item.create as any).mockResolvedValue({ id: 'item-1' });
+      (prisma.tag.findFirst as any).mockResolvedValue(null);
+      (prisma.tag.create as any).mockResolvedValue({ id: 'tag-1', name: 'tag1' });
+      (prisma.item.findUnique as any).mockResolvedValue(createdRow);
+
+      const result = await createItem('user-123', {
+        typeName: 'snippet',
+        title: 'New Item',
+        description: null,
+        content: 'console.log(1)',
+        url: null,
+        language: 'javascript',
+        tags: ['tag1'],
+      });
+
+      expect(prisma.item.create).toHaveBeenCalledWith({
+        data: {
+          title: 'New Item',
+          description: null,
+          content: 'console.log(1)',
+          url: null,
+          language: 'javascript',
+          contentType: 'text',
+          userId: 'user-123',
+          typeId: 'type-1',
+        },
+      });
+      expect(prisma.tag.create).toHaveBeenCalledWith({ data: { userId: 'user-123', name: 'tag1' } });
+      expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'tag-1' } });
+      expect(result?.title).toBe('New Item');
+      expect(result?.tags).toEqual(['tag1']);
+    });
+
+    it('should reuse an existing tag instead of creating a duplicate', async () => {
+      (prisma.itemType.findFirst as any).mockResolvedValue({ id: 'type-1', name: 'Snippet' });
+      (prisma.item.create as any).mockResolvedValue({ id: 'item-1' });
+      (prisma.tag.findFirst as any).mockResolvedValue({ id: 'existing-tag', name: 'tag1' });
+      (prisma.item.findUnique as any).mockResolvedValue(createdRow);
+
+      await createItem('user-123', {
+        typeName: 'snippet',
+        title: 'New Item',
+        description: null,
+        content: null,
+        url: null,
+        language: null,
+        tags: ['tag1'],
       });
 
       expect(prisma.tag.create).not.toHaveBeenCalled();
