@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { CodeEditor } from "@/components/dashboard/code-editor";
 import { createItem } from "@/actions/items";
 import { getIcon } from "@/server/icons";
 
@@ -79,6 +80,7 @@ export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) 
   const showContent = CONTENT_TYPES.includes(form.type);
   const showLanguage = LANGUAGE_TYPES.includes(form.type);
   const showUrl = URL_TYPES.includes(form.type);
+  const showCodeEditor = LANGUAGE_TYPES.includes(form.type);
 
   function handleOpenChange(next: boolean) {
     if (!next) setForm(EMPTY_FORM);
@@ -173,13 +175,21 @@ export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) 
           {showContent && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Content</label>
-              <Textarea
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                placeholder="Content"
-                rows={6}
-                className="font-mono text-xs"
-              />
+              {showCodeEditor ? (
+                <CodeEditor
+                  value={form.content}
+                  onChange={(next) => setForm({ ...form, content: next })}
+                  language={form.language}
+                />
+              ) : (
+                <Textarea
+                  value={form.content}
+                  onChange={(e) => setForm({ ...form, content: e.target.value })}
+                  placeholder="Content"
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+              )}
             </div>
           )}
 

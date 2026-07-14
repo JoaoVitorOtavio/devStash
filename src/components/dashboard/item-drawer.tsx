@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CodeEditor } from "@/components/dashboard/code-editor";
 import { getIcon } from "@/server/icons";
 import { cn } from "@/server/utils";
 import { toggleItemFavorite, toggleItemPin, updateItem, deleteItem } from "@/actions/items";
@@ -233,6 +234,7 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
   const showContent = CONTENT_TYPES.includes(typeName);
   const showLanguage = LANGUAGE_TYPES.includes(typeName);
   const showUrl = URL_TYPES.includes(typeName);
+  const showCodeEditor = LANGUAGE_TYPES.includes(typeName);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -325,13 +327,21 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                 {showContent && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">Content</label>
-                    <Textarea
-                      value={form.content}
-                      onChange={(e) => setForm({ ...form, content: e.target.value })}
-                      placeholder="Content"
-                      rows={8}
-                      className="font-mono text-xs"
-                    />
+                    {showCodeEditor ? (
+                      <CodeEditor
+                        value={form.content}
+                        onChange={(next) => setForm({ ...form, content: next })}
+                        language={form.language}
+                      />
+                    ) : (
+                      <Textarea
+                        value={form.content}
+                        onChange={(e) => setForm({ ...form, content: e.target.value })}
+                        placeholder="Content"
+                        rows={8}
+                        className="font-mono text-xs"
+                      />
+                    )}
                   </div>
                 )}
 
@@ -406,9 +416,13 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
               )}
 
               {item.content && (
-                <pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words">
-                  {item.content}
-                </pre>
+                showCodeEditor ? (
+                  <CodeEditor value={item.content} language={item.language} readOnly />
+                ) : (
+                  <pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words">
+                    {item.content}
+                  </pre>
+                )
               )}
 
               {item.contentType === "file" && item.fileUrl && (

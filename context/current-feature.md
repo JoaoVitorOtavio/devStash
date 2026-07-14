@@ -8,6 +8,13 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-14: Completed Code Editor:
+  - Added `CodeEditor` component (`src/components/dashboard/code-editor.tsx`) wrapping `@monaco-editor/react`: custom dark theme matched to the app's zinc palette, macOS-style traffic-light dots, language label, copy-to-clipboard button, fluid height capped at 400px with a themed scrollbar, and readonly/edit modes.
+  - Swapped `Textarea` for `CodeEditor` in `ItemDrawer` (view + edit) and `ItemCreateDialog`, scoped to snippet/command types only; notes/prompts/links keep `Textarea`.
+  - Added `toMonacoLanguage` alias-mapping utility (js→javascript, py→python, sh/bash→shell, etc.) with unit test coverage (`code-editor.test.ts`).
+  - Installed `@monaco-editor/react`.
+  - Verified end-to-end in the browser via Playwright MCP: view/edit rendering, live typing, multi-line paste triggering the height cap and scrollbar, syntax highlighting (JS/Python), copy button, and type-switching in the New Item dialog (snippet/command → editor, note/prompt/link → textarea) — no console errors.
+  - Known dev-mode-only cosmetic quirk: Next.js's dev error overlay shows a "1 Issue" badge for a benign `Canceled` promise rejection Monaco throws internally when an editor unmounts mid-flight. Documented upstream `@monaco-editor/react`/Monaco quirk, not a functional bug; does not appear in production builds.
 - 2026-07-14: Completed Item Create:
   - Added shadcn `Dialog` (`src/components/ui/dialog.tsx`) and `Select` (`src/components/ui/select.tsx`) UI primitives, installing `@radix-ui/react-select`.
   - Added `createItem` query in `src/server/db/items.ts`: resolves the type by name (system or user-owned, case-insensitive), creates the item plus tags in a transaction, returns the full `ItemDetail`.
