@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/dashboard/code-editor";
+import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
 import { createItem } from "@/actions/items";
 import { getIcon } from "@/server/icons";
 
@@ -30,6 +31,7 @@ type ItemTypeName = (typeof ITEM_TYPES)[number];
 const CONTENT_TYPES: ItemTypeName[] = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES: ItemTypeName[] = ["snippet", "command"];
 const URL_TYPES: ItemTypeName[] = ["link"];
+const MARKDOWN_TYPES: ItemTypeName[] = ["prompt", "note"];
 
 const TYPE_ICONS: Record<ItemTypeName, string> = {
   snippet: "code",
@@ -81,6 +83,7 @@ export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) 
   const showLanguage = LANGUAGE_TYPES.includes(form.type);
   const showUrl = URL_TYPES.includes(form.type);
   const showCodeEditor = LANGUAGE_TYPES.includes(form.type);
+  const showMarkdownEditor = MARKDOWN_TYPES.includes(form.type);
 
   function handleOpenChange(next: boolean) {
     if (!next) setForm(EMPTY_FORM);
@@ -180,6 +183,11 @@ export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) 
                   value={form.content}
                   onChange={(next) => setForm({ ...form, content: next })}
                   language={form.language}
+                />
+              ) : showMarkdownEditor ? (
+                <MarkdownEditor
+                  value={form.content}
+                  onChange={(next) => setForm({ ...form, content: next })}
                 />
               ) : (
                 <Textarea

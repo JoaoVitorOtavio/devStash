@@ -8,6 +8,21 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-15: Completed Markdown Editor:
+  - Added `MarkdownEditor` component (`src/components/dashboard/markdown-editor.tsx`) using `react-markdown` + `remark-gfm`: tabbed Write/Preview interface, dark theme matched literally to spec (`bg-[#1e1e1e]` container, `bg-[#2d2d2d]` header), copy button reusing `CodeEditor`'s clipboard/toast pattern, fluid height capped at 400px with internal scroll.
+  - Swapped `Textarea` for `MarkdownEditor` in `ItemDrawer` (view + edit) and `ItemCreateDialog`, scoped to note/prompt types only; snippets/commands keep `CodeEditor` unchanged.
+  - Readonly mode shows only the Preview pane (no tabs); edit mode defaults to Write with Preview available.
+  - Added `.markdown-preview` custom CSS class in `globals.css` for dark-mode-safe rendering: distinct heading sizes, dark monospace code blocks, subtle inline-code background, indented bulleted/numbered lists, left-border-accented blockquotes, blue links with hover state, bordered tables with header background.
+  - Added shadcn `Tabs` UI primitive (`src/components/ui/tabs.tsx`), installing `@radix-ui/react-tabs`.
+  - Installed `react-markdown` and `remark-gfm`.
+  - Verified end-to-end in the browser via Playwright MCP: readonly preview rendering, edit-mode Write/Preview tab switching, rich GFM markdown (headings, bold/italic, task-list checkboxes, blockquotes, links, inline/block code, tables) rendering correctly with the 400px height cap and scrollbar, and type-switching in both the New Item dialog and the item drawer (note/prompt → MarkdownEditor, snippet/command → CodeEditor unaffected) — no console errors.
+- 2026-07-14: Completed Code Editor:
+  - Added `CodeEditor` component (`src/components/dashboard/code-editor.tsx`) wrapping `@monaco-editor/react`: custom dark theme matched to the app's zinc palette, macOS-style traffic-light dots, language label, copy-to-clipboard button, fluid height capped at 400px with a themed scrollbar, and readonly/edit modes.
+  - Swapped `Textarea` for `CodeEditor` in `ItemDrawer` (view + edit) and `ItemCreateDialog`, scoped to snippet/command types only; notes/prompts/links keep `Textarea`.
+  - Added `toMonacoLanguage` alias-mapping utility (js→javascript, py→python, sh/bash→shell, etc.) with unit test coverage (`code-editor.test.ts`).
+  - Installed `@monaco-editor/react`.
+  - Verified end-to-end in the browser via Playwright MCP: view/edit rendering, live typing, multi-line paste triggering the height cap and scrollbar, syntax highlighting (JS/Python), copy button, and type-switching in the New Item dialog (snippet/command → editor, note/prompt/link → textarea) — no console errors.
+  - Known dev-mode-only cosmetic quirk: Next.js's dev error overlay shows a "1 Issue" badge for a benign `Canceled` promise rejection Monaco throws internally when an editor unmounts mid-flight. Documented upstream `@monaco-editor/react`/Monaco quirk, not a functional bug; does not appear in production builds.
 - 2026-07-14: Completed Code Editor:
   - Added `CodeEditor` component (`src/components/dashboard/code-editor.tsx`) wrapping `@monaco-editor/react`: custom dark theme matched to the app's zinc palette, macOS-style traffic-light dots, language label, copy-to-clipboard button, fluid height capped at 400px with a themed scrollbar, and readonly/edit modes.
   - Swapped `Textarea` for `CodeEditor` in `ItemDrawer` (view + edit) and `ItemCreateDialog`, scoped to snippet/command types only; notes/prompts/links keep `Textarea`.
