@@ -25,6 +25,8 @@ export const getPinnedItems = cache(async (userId: string, limit = 4) => {
     id: item.id,
     title: item.title,
     description: item.description,
+    content: item.content,
+    url: item.url,
     type: {
       id: item.type.id,
       name: item.type.name,
@@ -92,6 +94,8 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
     id: item.id,
     title: item.title,
     description: item.description,
+    content: item.content,
+    url: item.url,
     type: {
       id: item.type.id,
       name: item.type.name,
@@ -312,6 +316,8 @@ export const getItemsByType = cache(async (userId: string, typeName: string) => 
     id: item.id,
     title: item.title,
     description: item.description,
+    content: item.content,
+    url: item.url,
     type: {
       id: item.type.id,
       name: item.type.name,

@@ -1,15 +1,20 @@
 "use client";
 
-import { ChevronRight, Pin, Star } from "lucide-react";
+import { useState, type MouseEvent } from "react";
+import { ChevronRight, Check, Copy, Pin, Star } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/server/utils";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 
 interface PinnedItem {
   id: string;
   title: string;
   description: string | null;
+  content?: string | null;
+  url?: string | null;
   type: {
     id: string;
     name: string;
@@ -28,6 +33,14 @@ interface PinnedItemsProps {
 
 export function PinnedItems({ items }: PinnedItemsProps) {
   const { openItem } = useItemDrawer();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleCopy(e: MouseEvent, id: string, value: string) {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(value);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  }
 
   return (
     <div className="space-y-4">
@@ -60,7 +73,8 @@ export function PinnedItems({ items }: PinnedItemsProps) {
           {items.map((item) => {
             const Icon = getIcon(item.type.icon || 'file');
             const borderColor = item.type.color || 'var(--color-primary)';
-            
+            const copyValue = item.content || item.url;
+
             return (
               <Card
                 key={item.id}
@@ -105,6 +119,20 @@ export function PinnedItems({ items }: PinnedItemsProps) {
                     <span className="hidden sm:inline w-12 text-right">
                       {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
+                    {copyValue && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-8 w-8 transition-opacity",
+                          copiedId === item.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        )}
+                        onClick={(e) => handleCopy(e, item.id, copyValue)}
+                        aria-label="Copy content"
+                      >
+                        {copiedId === item.id ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
               </Card>

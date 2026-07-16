@@ -1,7 +1,10 @@
 "use client";
 
+import { useState, type MouseEvent } from "react";
+import { Check, Copy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/server/utils"; // Assuming cn is available in utils
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 
@@ -10,6 +13,8 @@ interface ItemCardProps {
     id: string;
     title: string;
     description?: string | null;
+    content?: string | null;
+    url?: string | null;
     type: {
       name: string;
       color?: string | null;
@@ -24,6 +29,16 @@ export function ItemCard({ item }: ItemCardProps) {
   const { openItem } = useItemDrawer();
   const accentColor = item.type.color || 'var(--border)';
   const gradient = `linear-gradient(to bottom, ${accentColor}, ${accentColor}aa)`;
+  const copyValue = item.content || item.url;
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy(e: MouseEvent) {
+    e.stopPropagation();
+    if (!copyValue) return;
+    await navigator.clipboard.writeText(copyValue);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   return (
     <Card
@@ -53,9 +68,23 @@ export function ItemCard({ item }: ItemCardProps) {
       <div className="p-4 pl-5 relative z-10">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold leading-none tracking-tight">{item.title}</h3>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1">
              {item.isPinned && (
                <Badge variant="secondary" className="h-5 px-1 text-[10px]">Pinned</Badge>
+             )}
+             {copyValue && (
+               <Button
+                 variant="ghost"
+                 size="icon"
+                 className={cn(
+                   "h-6 w-6 transition-opacity",
+                   copied ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                 )}
+                 onClick={handleCopy}
+                 aria-label="Copy content"
+               >
+                 {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+               </Button>
              )}
           </div>
         </div>

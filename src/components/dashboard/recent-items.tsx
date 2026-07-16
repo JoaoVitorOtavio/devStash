@@ -1,15 +1,19 @@
 "use client";
 
-import { ChevronRight, Clock, Star, MoreVertical, Plus } from "lucide-react";
+import { useState, type MouseEvent } from "react";
+import { ChevronRight, Clock, Check, Copy, Star, MoreVertical, Plus } from "lucide-react";
 import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/server/utils";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 
 interface RecentItem {
   id: string;
   title: string;
   description: string | null;
+  content?: string | null;
+  url?: string | null;
   type: {
     id: string;
     name: string;
@@ -31,6 +35,14 @@ interface RecentItemsProps {
 
 export function RecentItems({ items }: RecentItemsProps) {
   const { openItem } = useItemDrawer();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleCopy(e: MouseEvent, id: string, value: string) {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(value);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  }
 
   return (
     <div className="space-y-4">
@@ -73,7 +85,8 @@ export function RecentItems({ items }: RecentItemsProps) {
               {items.map((item) => {
                 const Icon = getIcon(item.type.icon || 'file');
                 const borderColor = item.type.color || 'var(--color-primary)';
-                
+                const copyValue = item.content || item.url;
+
                 return (
                   <div
                     key={item.id}
@@ -133,6 +146,20 @@ export function RecentItems({ items }: RecentItemsProps) {
                       <span className="text-xs text-muted-foreground hidden md:inline">
                         {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
+                      {copyValue && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "h-8 w-8 transition-opacity",
+                            copiedId === item.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          )}
+                          onClick={(e) => handleCopy(e, item.id, copyValue)}
+                          aria-label="Copy content"
+                        >
+                          {copiedId === item.id ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
