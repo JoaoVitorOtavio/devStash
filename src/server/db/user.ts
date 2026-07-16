@@ -27,10 +27,12 @@ export const getUserProfile = cache(async (userEmail: string) => {
     };
   }
 
+  const { password, ...safeUser } = user;
+
   return {
-    ...user,
-    name: user.name || "User", // Fallback
-    image: user.image || "https://github.com/shadcn.png", // Fallback
-    hasPassword: !!user.password,
+    ...safeUser,
+    name: safeUser.name || "User", // Fallback
+    image: safeUser.image || "https://github.com/shadcn.png", // Fallback
+    hasPassword: !!password,
   };
 });
