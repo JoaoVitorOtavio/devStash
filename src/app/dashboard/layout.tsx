@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-import { Search, FolderPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   SidebarProvider,
@@ -12,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { LoginToast } from "@/components/auth/login-toast";
 import { ItemDrawerProvider } from "@/components/dashboard/item-drawer-context";
 import { ItemCreateButton } from "@/components/dashboard/item-create-button";
+import { CollectionCreateButton } from "@/components/dashboard/collection-create-button";
 import { getItemTypes } from "@/server/db/items";
 import { getAllCollections, getRecentCollections } from "@/server/db/collections";
 import { getUserProfile } from "@/server/db/user";
@@ -62,10 +62,7 @@ export default async function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" className="hidden sm:flex h-9">
-                <FolderPlus className="h-4 w-4 mr-2" />
-                <span>New Collection</span>
-              </Button>
+              <CollectionCreateButton />
               <ItemCreateButton />
             </div>
           </header>

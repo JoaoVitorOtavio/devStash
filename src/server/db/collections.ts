@@ -82,3 +82,26 @@ export const getAllCollections = cache(async (userId: string) => {
     updatedAt: collection.updatedAt
   }));
 });
+
+export interface CreateCollectionInput {
+  name: string;
+  description: string | null;
+}
+
+export async function createCollection(userId: string, data: CreateCollectionInput) {
+  const collection = await prisma.collection.create({
+    data: {
+      name: data.name,
+      description: data.description,
+      userId,
+    },
+  });
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    updatedAt: collection.updatedAt,
+  };
+}

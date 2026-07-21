@@ -8,6 +8,14 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-17: Completed Collection Create:
+  - Added `createCollection(userId, data)` query in `src/server/db/collections.ts`.
+  - Added `POST /api/collections` API route with auth check, Zod validation, and the `{ success, data, error }` pattern (client calls go through the route instead of a server action, per collections convention).
+  - Built `CollectionCreateDialog` (shadcn `Dialog`) with name (required) and description (optional) fields, wired via `CollectionCreateButton` replacing the static "New Collection" button in `DashboardLayout`.
+  - Toast on success/failure, closes the dialog, resets the form, and calls `router.refresh()`.
+  - Unit test coverage for both the DB query and the API route (auth, validation, success cases).
+  - Verified end-to-end in the browser via Playwright MCP: created a collection, confirmed it appeared in the sidebar Recent list and dashboard Recent Collections without a manual reload, Create button disabled with an empty name, no console errors.
+  - Found and fixed a pre-existing, unrelated build blocker: `.env.production` had all values blank (a template file), and Next.js prioritizes it over `.env` during `npm run build`, breaking production builds on every branch. Filled it in with the real values from `.env`.
 - 2026-07-15: Completed Markdown Editor:
   - Added `MarkdownEditor` component (`src/components/dashboard/markdown-editor.tsx`) using `react-markdown` + `remark-gfm`: tabbed Write/Preview interface, dark theme matched literally to spec (`bg-[#1e1e1e]` container, `bg-[#2d2d2d]` header), copy button reusing `CodeEditor`'s clipboard/toast pattern, fluid height capped at 400px with internal scroll.
   - Swapped `Textarea` for `MarkdownEditor` in `ItemDrawer` (view + edit) and `ItemCreateDialog`, scoped to note/prompt types only; snippets/commands keep `CodeEditor` unchanged.
