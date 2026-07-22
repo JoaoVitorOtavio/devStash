@@ -1,26 +1,25 @@
-# Current Feature: Collection Card Actions (Edit, Delete, Favorite Icon)
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- `/collections/[id]` page: add Edit, Delete, Favorite buttons (header area near collection title).
-  - Favorite: icon/button only, no backend behavior yet.
-  - Edit: opens modal to edit collection metadata (name, description).
-  - Delete: confirmation dialog before delete. Deleting collection must NOT delete its items — items just lose the collection association (remove `ItemCollection` join rows only).
-- `CollectionCard` (used on `/collections` list and dashboard `RecentCollections`): add 3-dot menu (dropdown) with Edit, Delete, Favorite entries.
-  - Clicking the 3-dot icon opens dropdown, does not navigate.
-  - Clicking anywhere else on the card navigates to `/collections/[id]` (existing Link behavior).
-  - Same Edit modal / Delete confirmation reused from the detail page.
 
 ## Notes
-- Favorite is UI-only for now (icon/button present, wired to nothing) — no schema change, no action, matches spec "do not implement favorites yet".
-- Edit: needs an `updateCollection` query (`src/server/db/collections.ts`) + server action, Zod-validated, `{ success, data, error }` pattern, following `createCollection`/API-route convention already used for collections.
-- Delete: needs a `deleteCollection` query — delete `ItemCollection` rows for that collection, then the collection row, in a transaction; ownership check via `userId`. Items themselves untouched.
-- Reuse shadcn `Dialog` for edit (matches `CollectionCreateDialog`), `AlertDialog` for delete confirm (matches item delete pattern), and add shadcn `DropdownMenu` primitive for the 3-dot card menu if not already present.
-- `router.refresh()` after edit/delete so lists stay in sync, same as existing patterns.
 
 ## History
+- 2026-07-22: Completed Collection Card Actions (Edit, Delete, Favorite Icon):
+  - Added `updateCollection`/`deleteCollection` queries in `src/server/db/collections.ts` (ownership-checked via `findUnique({ where: { id, userId } })`) and `PATCH`/`DELETE` handlers in a new `src/app/api/collections/[id]/route.ts`, following the same auth + Zod + `{ success, data, error }` pattern as the existing `POST /api/collections`.
+  - Deleting a collection only removes the `ItemCollection` join rows (already `onDelete: Cascade` in the schema) — items themselves are untouched, per spec.
+  - Added `CollectionEditDialog` (shadcn `Dialog`, prefilled name/description, PATCH) and `CollectionDeleteDialog` (shadcn `AlertDialog`, confirmation copy clarifies items aren't deleted, DELETE) — shared by both the card menu and the detail page.
+  - Added `CollectionCardMenu`: a 3-dot `DropdownMenu` trigger on `CollectionCard` (used by both `/collections` and the dashboard's `RecentCollections`) with Edit, Favorite, a separator, then Delete. Favorite is UI-only (icon reflects `isFavorite`, no handler) — matches spec to not implement favorites yet.
+  - Added `CollectionDetailActions`: Favorite/Edit/Delete icon buttons in the `/collections/[id]` header; its delete dialog redirects to `/collections` afterward since the page itself no longer exists.
+  - `CollectionCard` gained an `isFavorite` prop (already returned by its data queries, just not threaded through before).
+  - Unit test coverage for `updateCollection`/`deleteCollection` and the new route's `PATCH`/`DELETE` handlers (auth, validation, ownership, not-found), 63 tests passing.
+  - Fixed two bugs found during Playwright verification, both scoped to the card's dropdown-triggered dialogs:
+    - The click-guard wrapper around the dropdown trigger also wrapped the Edit/Delete dialogs; its `preventDefault()` (needed to stop the 3-dot button's click from navigating the card's `Link`) was also silently cancelling the Save/Delete buttons' native form-submit action, because React re-dispatches portaled events through the fiber tree regardless of where the DOM node actually lives. Split into two guards: the trigger keeps `preventDefault+stopPropagation`, the portaled dialogs only get `stopPropagation`.
+    - Opening the Edit/Delete dialog from a `DropdownMenuItem.onSelect` raced the dropdown's own modal body-lock against the dialog's, leaving `document.body` stuck at `pointer-events: none` after Cancel — freezing the entire page. Fixed with `<DropdownMenu modal={false}>` on the card menu, since it doesn't need its own modal lock.
+  - Verified end-to-end in the browser via Playwright MCP: edit (prefill + save) and delete (confirm + cancel) from both the card dropdown and the detail-page header, on `/collections`, the dashboard, and `/collections/[id]`; confirmed the card-click-still-navigates / dropdown-doesn't-navigate behavior; re-verified both bugs above are fixed by checking `document.body`'s `pointer-events` style and a real subsequent click after each dialog closes — no console errors throughout.
 - 2026-07-22: Completed Collection Pages:
   - Refactored `src/server/db/collections.ts`: extracted the shared type-breakdown mapping (`mapCollectionWithStats`) used by `getRecentCollections`; added `getAllCollectionsWithStats(userId)` (same shape, no limit) and `getCollectionWithItems(userId, collectionId)` (ownership-checked via `where: { id, userId }`, returns the collection plus its items mapped to the `ItemCard` shape through the `ItemCollection` join table).
   - Extracted `CollectionCard` (`src/components/dashboard/collection-card.tsx`) from the markup previously inlined in `RecentCollections`, now wrapped in a `Link` to `/collections/[id]`; reused by both `RecentCollections` and the new `/collections` list page.
