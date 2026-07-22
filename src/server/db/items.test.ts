@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem } from './items';
+import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem, getAllItemsForSearch } from './items';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => {
@@ -65,6 +65,54 @@ describe('Items DB Utilities', () => {
           OR: expect.arrayContaining([{ isSystem: true }])
         })
       }));
+    });
+  });
+
+  describe('getAllItemsForSearch', () => {
+    it('should return all items with a truncated content preview', async () => {
+      const mockItems = [
+        {
+          id: 'item-1',
+          title: 'Debounce Hook',
+          description: 'A hook',
+          content: 'x'.repeat(150),
+          type: { id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6' },
+        },
+        {
+          id: 'item-2',
+          title: 'Note without content',
+          description: 'Fallback description',
+          content: null,
+          type: { id: 'type-2', name: 'Note', icon: 'FileText', color: '#f59e0b' },
+        },
+      ];
+      (prisma.item.findMany as any).mockResolvedValue(mockItems);
+
+      const result = await getAllItemsForSearch('user-123');
+
+      expect(prisma.item.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { userId: 'user-123' },
+      }));
+      expect(result).toEqual([
+        {
+          id: 'item-1',
+          title: 'Debounce Hook',
+          contentPreview: 'x'.repeat(100),
+          type: { id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6' },
+        },
+        {
+          id: 'item-2',
+          title: 'Note without content',
+          contentPreview: 'Fallback description',
+          type: { id: 'type-2', name: 'Note', icon: 'FileText', color: '#f59e0b' },
+        },
+      ]);
+    });
+
+    it('should return an empty array for guest users without querying the database', async () => {
+      const result = await getAllItemsForSearch('guest-id');
+      expect(result).toEqual([]);
+      expect(prisma.item.findMany).not.toHaveBeenCalled();
     });
   });
 

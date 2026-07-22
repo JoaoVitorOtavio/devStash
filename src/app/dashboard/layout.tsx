@@ -1,6 +1,4 @@
 import { Suspense } from "react";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
   SidebarProvider,
   SidebarInset,
@@ -10,10 +8,12 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { LoginToast } from "@/components/auth/login-toast";
 import { ItemDrawerProvider } from "@/components/dashboard/item-drawer-context";
+import { CommandPaletteProvider } from "@/components/dashboard/command-palette-context";
+import { SearchTrigger } from "@/components/dashboard/search-trigger";
 import { ItemCreateButton } from "@/components/dashboard/item-create-button";
 import { CollectionCreateButton } from "@/components/dashboard/collection-create-button";
-import { getItemTypes } from "@/server/db/items";
-import { getAllCollections, getRecentCollections } from "@/server/db/collections";
+import { getItemTypes, getAllItemsForSearch } from "@/server/db/items";
+import { getAllCollections, getAllCollectionsWithStats, getRecentCollections } from "@/server/db/collections";
 import { getUserProfile } from "@/server/db/user";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
@@ -31,11 +31,19 @@ export default async function DashboardLayout({
 
   const user = await getUserProfile(session.user.email!);
 
-  const [itemTypes, collections, recentCollections] = await Promise.all([
+  const [itemTypes, collections, recentCollections, searchItems, collectionsWithStats] = await Promise.all([
     getItemTypes(user.id),
     getAllCollections(user.id),
     getRecentCollections(user.id),
+    getAllItemsForSearch(user.id),
+    getAllCollectionsWithStats(user.id),
   ]);
+
+  const searchCollections = collectionsWithStats.map((collection) => ({
+    id: collection.id,
+    name: collection.name,
+    itemCount: collection.itemCount,
+  }));
 
   return (
     <SidebarProvider>
@@ -44,34 +52,26 @@ export default async function DashboardLayout({
       </Suspense>
       <AppSidebar itemTypes={itemTypes} collections={collections} recentCollections={recentCollections} user={user} />
       <SidebarInset>
-        <div className="flex flex-col w-full">
-          <header className="fixed top-0 right-0 left-0 h-16 flex items-center gap-2 border-b border-sidebar-border px-4 bg-card/50 backdrop-blur-sm z-40 md:peer-data-[state=expanded]:left-[var(--sidebar-width)] md:peer-data-[collapsible=icon]:left-[var(--sidebar-width-icon)]">
-            <div className="flex items-center gap-2 flex-1 justify-center">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <div className="relative max-w-md w-full group">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search items..."
-                  className="pl-9 h-9 bg-background/50 focus:bg-background"
-                />
-                <div className="absolute right-2 top-1.5 hidden items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                  <span className="text-xs">⌘</span>K
+        <ItemDrawerProvider collections={collections}>
+          <CommandPaletteProvider items={searchItems} collections={searchCollections}>
+            <div className="flex flex-col w-full">
+              <header className="fixed top-0 right-0 left-0 h-16 flex items-center gap-2 border-b border-sidebar-border px-4 bg-card/50 backdrop-blur-sm z-40 md:peer-data-[state=expanded]:left-[var(--sidebar-width)] md:peer-data-[collapsible=icon]:left-[var(--sidebar-width-icon)]">
+                <div className="flex items-center gap-2 flex-1 justify-center">
+                  <SidebarTrigger className="-ml-1" />
+                  <Separator orientation="vertical" className="mr-2 h-4" />
+                  <SearchTrigger />
                 </div>
-              </div>
+                <div className="flex items-center gap-3">
+                  <CollectionCreateButton />
+                  <ItemCreateButton collections={collections} />
+                </div>
+              </header>
+              <main className="flex flex-1 flex-col gap-4 p-4 pt-20 overflow-y-auto">
+                <div className="min-h-full flex-1">{children}</div>
+              </main>
             </div>
-            <div className="flex items-center gap-3">
-              <CollectionCreateButton />
-              <ItemCreateButton collections={collections} />
-            </div>
-          </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 pt-20 overflow-y-auto">
-            <div className="min-h-full flex-1">
-              <ItemDrawerProvider collections={collections}>{children}</ItemDrawerProvider>
-            </div>
-          </main>
-        </div>
+          </CommandPaletteProvider>
+        </ItemDrawerProvider>
       </SidebarInset>
     </SidebarProvider>
   );
