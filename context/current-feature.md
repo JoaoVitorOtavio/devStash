@@ -1,25 +1,25 @@
-# Current Feature: Global Search / Command Palette
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Global command palette opens with Cmd+K (Mac) / Ctrl+K (Windows).
-- TopBar search input opens the palette on click (not a separate inline search).
-- Fuzzy search across all items and collections, client-side (no server round-trips).
-- Results grouped into an Items section and a Collections section.
-- Keyboard navigation: arrow keys to move, Enter to select.
-- Each result row shows: items → type icon; collections → item count.
-- Selecting an item opens the item drawer; selecting a collection navigates to its page.
-- Search input placeholder shows the ⌘K hint.
 
 ## Notes
-- Use shadcn `cmdk`-based `Command` component (`CommandDialog`/`CommandInput`/`CommandList`/`CommandGroup`/`CommandItem`) — check if already present under `src/components/ui`, add via shadcn if not.
-- Pre-fetch searchable data on app load rather than querying per keystroke; reuse existing data-fetching functions (e.g. `getAllItems`/equivalent, `getAllCollectionsWithStats` or `getAllCollections`) instead of writing new queries — search data shape: items (id, title, type, content preview), collections (id, name, itemCount).
-- Wire the palette's open state so it can be triggered both by the Cmd/Ctrl+K shortcut and by clicking the existing TopBar search input — likely a client provider/context similar to `ItemDrawerProvider`, mounted once in `DashboardLayout`.
-- Selecting an item should open the existing `ItemDrawer` (via `useItemDrawer`), not navigate to a new route.
 
 ## History
+- 2026-07-22: Completed Global Search / Command Palette:
+  - Added `getAllItemsForSearch(userId)` in `src/server/db/items.ts`: lightweight shape (id, title, type, contentPreview truncated to 100 chars), following the same `cache`/guest-fallback convention as the other `getAll*` queries.
+  - Added the shadcn `Command` UI primitive (`src/components/ui/command.tsx`, `cmdk` package) — `CommandDialog` wraps `Dialog` with a screen-reader-only title/description and forwards a `filter`/`shouldFilter` prop through to the inner `Command`.
+  - Added `CommandPalette` (`src/components/dashboard/command-palette.tsx`): groups results into "Items" (type icon + title + content preview) and "Collections" (folder icon + name + item count); selecting an item calls `useItemDrawer().openItem(id)`, selecting a collection does `router.push`.
+  - Added `CommandPaletteProvider`/`useCommandPalette` (`src/components/dashboard/command-palette-context.tsx`): holds open state, listens for Cmd/Ctrl+K globally via a `window` keydown listener, mounted in `DashboardLayout` nested inside `ItemDrawerProvider` (so the palette can open the item drawer) and wrapping both the header and `{children}`.
+  - Added `SearchTrigger` (`src/components/dashboard/search-trigger.tsx`): replaces the previous plain `Input` in the TopBar with a button styled identically (same ⌘K hint badge) that opens the palette on click instead of accepting typed text directly.
+  - `DashboardLayout` now also fetches `getAllCollectionsWithStats` (for the palette's item counts) alongside the existing `getAllCollections`/`getRecentCollections`/`getItemTypes` calls.
+  - Unit test coverage for `getAllItemsForSearch` (guest fallback, preview truncation/fallback-to-description), 65 tests passing at that point.
+  - Verified end-to-end in the browser via Playwright MCP: Cmd/Ctrl+K opens the palette from `/dashboard` and `/collections`, the TopBar trigger opens it on click, typing filters both groups (empty groups auto-hide), arrow keys move the selection, Enter on an item opens the `ItemDrawer` and Enter on a collection navigates to `/collections/[id]` — no console errors.
+  - Found and fixed a real bug during verification, reported by the user: cmdk's default filter does per-character fuzzy subsequence matching across the whole `value` string, so a short query like "test" trivially exists as a scattered subsequence inside any long content-preview blob, surfacing almost every item. Fixed with a custom weighted filter (`src/server/search-filter.ts`, `searchValueFilter`) that scores the item's title/collection's name as a substring match first (exact=1, prefix=0.9, contains=0.7) and only falls back to the content preview — passed via cmdk's `keywords` prop, not concatenated into `value` — at a lower weight (×0.4), returning 0 otherwise. 8 unit tests added; confirmed in the browser that "test" now returns only genuinely matching results while normal substring/prefix queries (e.g. "debounc") still work.
+  - Found and fixed a git-hygiene issue in the first draft of that fix: the original implementation concatenated title+preview into one `value` string using a raw NUL byte as an unambiguous separator, but git treats any blob containing a NUL byte as binary — every future diff on that file would render as opaque `Bin` instead of the actual code. Replaced with cmdk's built-in `keywords` prop (an array kept separate from `value`), which avoids embedding any control byte at all and is the more idiomatic API for this.
+  - That NUL-byte version had already been merged and pushed to `origin/master` before the issue was caught; reconciled by resetting local `master` back to the pre-merge commit, redoing the merge with the corrected branch, and force-pushing (with the user's explicit confirmation) to replace the bad commit on the remote, since it was solo-project history nobody else had based work on yet.
 - 2026-07-22: Completed Collection Card Actions (Edit, Delete, Favorite Icon):
   - Added `updateCollection`/`deleteCollection` queries in `src/server/db/collections.ts` (ownership-checked via `findUnique({ where: { id, userId } })`) and `PATCH`/`DELETE` handlers in a new `src/app/api/collections/[id]/route.ts`, following the same auth + Zod + `{ success, data, error }` pattern as the existing `POST /api/collections`.
   - Deleting a collection only removes the `ItemCollection` join rows (already `onDelete: Cascade` in the schema) — items themselves are untouched, per spec.
