@@ -20,10 +20,10 @@ interface RecentItem {
     icon: string | null;
     color: string | null;
   };
-  collection: {
+  collections: {
     id: string;
     name: string;
-  } | null;
+  }[];
   tags: string[];
   isFavorite: boolean;
   createdAt: Date;
@@ -116,16 +116,25 @@ export function RecentItems({ items }: RecentItemsProps) {
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground truncate md:hidden">
-                          {item.collection?.name || "No collection"}
+                          {item.collections.length > 0
+                            ? item.collections.map((c) => c.name).join(", ")
+                            : "No collection"}
                         </span>
                       </div>
                     </div>
-                    
-                    <div className="hidden md:flex items-center">
-                      {item.collection ? (
-                        <Badge variant="outline" className="font-normal text-[11px] h-5 px-2">
-                          {item.collection.name}
-                        </Badge>
+
+                    <div className="hidden md:flex items-center gap-1 overflow-hidden">
+                      {item.collections.length > 0 ? (
+                        <>
+                          <Badge variant="outline" className="font-normal text-[11px] h-5 px-2 shrink-0">
+                            {item.collections[0].name}
+                          </Badge>
+                          {item.collections.length > 1 && (
+                            <span className="text-[10px] text-muted-foreground shrink-0">
+                              +{item.collections.length - 1}
+                            </span>
+                          )}
+                        </>
                       ) : (
                         <span className="text-xs text-muted-foreground italic">None</span>
                       )}

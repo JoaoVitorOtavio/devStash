@@ -8,6 +8,17 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-21: Completed Item-Collection Assignment:
+  - Schema change: replaced `Item.collectionId` (single, optional FK) with a many-to-many join table `ItemCollection` (itemId, collectionId), mirroring the existing `ItemTag` pattern.
+  - Hand-authored the migration SQL (`prisma migrate dev --create-only` doesn't support this non-interactive shell) to create the join table, backfill existing single-collection assignments into it, then drop the old column; applied via `prisma migrate deploy` against the Neon `development` branch and verified row counts (15 backfilled rows) via Neon MCP.
+  - Updated `src/server/db/items.ts` (`createItem`, `updateItem`, `getItemById`, `getRecentItems`) to accept/return `collectionIds`/`collections` as a list; both mutations filter incoming collection IDs to ones owned by the authenticated user before persisting (prevents attaching items to another user's collection).
+  - Updated `src/server/db/collections.ts`'s `getRecentCollections` to read item type breakdowns through the new join relation.
+  - Added `CollectionMultiSelect` (`src/components/dashboard/collection-multi-select.tsx`): a dependency-free toggleable-badge multi-select, used in both `ItemCreateDialog` and the `ItemDrawer` edit mode; collections are threaded down from `DashboardLayout`'s existing `getAllCollections` call through `ItemCreateButton` and `ItemDrawerProvider`.
+  - Updated `RecentItems` and the `ItemDrawer` view mode to render multiple collection badges (first badge + "+N", full comma-joined list on the mobile subtitle) instead of a single badge.
+  - Updated `prisma/seed.ts` and `scripts/test-db.ts` for the new schema.
+  - Unit test coverage for the ownership-filtering behavior in both `createItem` and `updateItem`, plus updated existing DB/action tests for the new `collections`/`collectionIds` shape (47 tests passing).
+  - Verified end-to-end in the browser via Playwright MCP: created an item with two collections selected, confirmed the "+N" badge and dashboard/collection item counts; edited an existing item's collections (removed one, added another) and confirmed the drawer view mode and dashboard counts updated correctly — no console errors.
+  - Found and fixed two pre-existing issues unrelated to the feature logic itself: `scripts/test-db.ts` referenced the old single-`collection` field and broke the build's typecheck; `src/generated/prisma` contained stale per-model files from an old Prisma generator version that were never cleaned up by subsequent `prisma generate` runs, causing a type error — deleted and regenerated from scratch (gitignored, no commit impact).
 - 2026-07-17: Completed Collection Create:
   - Added `createCollection(userId, data)` query in `src/server/db/collections.ts`.
   - Added `POST /api/collections` API route with auth check, Zod validation, and the `{ success, data, error }` pattern (client calls go through the route instead of a server action, per collections convention).

@@ -15,11 +15,18 @@ vi.mock('@/server/prisma', () => {
       findMany: vi.fn(),
       findFirst: vi.fn(),
     },
+    collection: {
+      findMany: vi.fn(),
+    },
     tag: {
       findFirst: vi.fn(),
       create: vi.fn(),
     },
     itemTag: {
+      deleteMany: vi.fn(),
+      create: vi.fn(),
+    },
+    itemCollection: {
       deleteMany: vi.fn(),
       create: vi.fn(),
     },
@@ -111,7 +118,7 @@ describe('Items DB Utilities', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         type: { id: 'type-1', name: 'Snippet', icon: 'code', color: 'blue' },
-        collection: { id: 'col-1', name: 'React Patterns' },
+        collections: [{ collection: { id: 'col-1', name: 'React Patterns' } }],
         tags: [{ tag: { name: 'tag1' } }],
       };
       (prisma.item.findUnique as any).mockResolvedValue(mockItem);
@@ -119,7 +126,7 @@ describe('Items DB Utilities', () => {
       const result = await getItemById('user-123', 'item-1');
       expect(result?.title).toBe('Test Item');
       expect(result?.tags).toEqual(['tag1']);
-      expect(result?.collection).toEqual({ id: 'col-1', name: 'React Patterns' });
+      expect(result?.collections).toEqual([{ id: 'col-1', name: 'React Patterns' }]);
     });
 
     it('should return null when the item does not exist', async () => {
@@ -153,7 +160,7 @@ describe('Items DB Utilities', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       type: { id: 'type-1', name: 'Snippet', icon: 'code', color: 'blue' },
-      collection: null,
+      collections: [],
       tags: [{ tag: { name: 'new-tag' } }],
     };
 
@@ -167,6 +174,7 @@ describe('Items DB Utilities', () => {
         url: null,
         language: null,
         tags: [],
+        collectionIds: [],
       });
 
       expect(result).toBeNull();
@@ -187,6 +195,7 @@ describe('Items DB Utilities', () => {
         url: null,
         language: null,
         tags: ['new-tag'],
+        collectionIds: [],
       });
 
       expect(prisma.item.update).toHaveBeenCalledWith({
@@ -219,10 +228,37 @@ describe('Items DB Utilities', () => {
         url: null,
         language: null,
         tags: ['new-tag'],
+        collectionIds: [],
       });
 
       expect(prisma.tag.create).not.toHaveBeenCalled();
       expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'existing-tag' } });
+    });
+
+    it('should only assign collections owned by the user and replace prior assignments', async () => {
+      (prisma.item.findUnique as any)
+        .mockResolvedValueOnce({ id: 'item-1', userId: 'user-123' })
+        .mockResolvedValueOnce(updatedRow);
+      (prisma.tag.findFirst as any).mockResolvedValue(null);
+      (prisma.collection.findMany as any).mockResolvedValue([{ id: 'col-1' }]);
+
+      await updateItem('user-123', 'item-1', {
+        title: 'New Title',
+        description: null,
+        content: null,
+        url: null,
+        language: null,
+        tags: [],
+        collectionIds: ['col-1', 'col-not-owned'],
+      });
+
+      expect(prisma.collection.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ['col-1', 'col-not-owned'] }, userId: 'user-123' },
+        select: { id: true },
+      });
+      expect(prisma.itemCollection.deleteMany).toHaveBeenCalledWith({ where: { itemId: 'item-1' } });
+      expect(prisma.itemCollection.create).toHaveBeenCalledTimes(1);
+      expect(prisma.itemCollection.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', collectionId: 'col-1' } });
     });
   });
 
@@ -243,7 +279,7 @@ describe('Items DB Utilities', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       type: { id: 'type-1', name: 'Snippet', icon: 'code', color: 'blue' },
-      collection: null,
+      collections: [],
       tags: [{ tag: { name: 'tag1' } }],
     };
 
@@ -258,6 +294,7 @@ describe('Items DB Utilities', () => {
         url: null,
         language: null,
         tags: [],
+        collectionIds: [],
       });
 
       expect(result).toBeNull();
@@ -279,6 +316,7 @@ describe('Items DB Utilities', () => {
         url: null,
         language: 'javascript',
         tags: ['tag1'],
+        collectionIds: [],
       });
 
       expect(prisma.item.create).toHaveBeenCalledWith({
@@ -313,10 +351,36 @@ describe('Items DB Utilities', () => {
         url: null,
         language: null,
         tags: ['tag1'],
+        collectionIds: [],
       });
 
       expect(prisma.tag.create).not.toHaveBeenCalled();
       expect(prisma.itemTag.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', tagId: 'existing-tag' } });
+    });
+
+    it('should only assign collections owned by the user', async () => {
+      (prisma.itemType.findFirst as any).mockResolvedValue({ id: 'type-1', name: 'Snippet' });
+      (prisma.item.create as any).mockResolvedValue({ id: 'item-1' });
+      (prisma.collection.findMany as any).mockResolvedValue([{ id: 'col-1' }]);
+      (prisma.item.findUnique as any).mockResolvedValue(createdRow);
+
+      await createItem('user-123', {
+        typeName: 'snippet',
+        title: 'New Item',
+        description: null,
+        content: null,
+        url: null,
+        language: null,
+        tags: [],
+        collectionIds: ['col-1', 'col-not-owned'],
+      });
+
+      expect(prisma.collection.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ['col-1', 'col-not-owned'] }, userId: 'user-123' },
+        select: { id: true },
+      });
+      expect(prisma.itemCollection.create).toHaveBeenCalledTimes(1);
+      expect(prisma.itemCollection.create).toHaveBeenCalledWith({ data: { itemId: 'item-1', collectionId: 'col-1' } });
     });
   });
 

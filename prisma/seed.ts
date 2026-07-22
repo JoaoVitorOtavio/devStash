@@ -116,8 +116,8 @@ async function main() {
       data: {
         ...item,
         userId: user.id,
-        collectionId: reactColl.id,
         contentType: 'text',
+        collections: { create: [{ collectionId: reactColl.id }] },
       },
     });
   }
@@ -161,8 +161,8 @@ async function main() {
       data: {
         ...item,
         userId: user.id,
-        collectionId: aiColl.id,
         contentType: 'text',
+        collections: { create: [{ collectionId: aiColl.id }] },
       },
     });
   }
@@ -186,8 +186,8 @@ async function main() {
       content: '```yaml\nversion: "3.8"\nservices:\n  db:\n    image: postgres:15-alpine\n    ports:\n      - "5432:5432"\n  app:\n    build: .\n    ports:\n      - "3000:3000"\n```',
       typeId: typeMap['snippet'],
       userId: user.id,
-      collectionId: devopsColl.id,
       contentType: 'text',
+      collections: { create: [{ collectionId: devopsColl.id }] },
     },
   });
 
@@ -198,8 +198,8 @@ async function main() {
       content: '#!/bin/bash\ngit pull origin main\nnpm install\nnpm run build\npm2 restart all',
       typeId: typeMap['command'],
       userId: user.id,
-      collectionId: devopsColl.id,
       contentType: 'text',
+      collections: { create: [{ collectionId: devopsColl.id }] },
     },
   });
 
@@ -209,8 +209,8 @@ async function main() {
       url: 'https://neon.tech/docs/introduction',
       typeId: typeMap['link'],
       userId: user.id,
-      collectionId: devopsColl.id,
       contentType: 'text',
+      collections: { create: [{ collectionId: devopsColl.id }] },
     },
   });
 
@@ -220,8 +220,8 @@ async function main() {
       url: 'https://developers.cloudflare.com/r2/',
       typeId: typeMap['link'],
       userId: user.id,
-      collectionId: devopsColl.id,
       contentType: 'text',
+      collections: { create: [{ collectionId: devopsColl.id }] },
     },
   });
 
@@ -249,8 +249,8 @@ async function main() {
       data: {
         ...item,
         userId: user.id,
-        collectionId: termColl.id,
         contentType: 'text',
+        collections: { create: [{ collectionId: termColl.id }] },
       },
     });
   }
@@ -279,9 +279,9 @@ async function main() {
       data: {
         ...link,
         userId: user.id,
-        collectionId: designColl.id,
         typeId: typeMap['link'],
         contentType: 'text',
+        collections: { create: [{ collectionId: designColl.id }] },
       },
     });
   }

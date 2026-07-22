@@ -23,6 +23,7 @@ const createItemSchema = z
     ),
     language: z.string().nullable().optional().default(null),
     tags: z.array(z.string().trim().min(1)).default([]),
+    collectionIds: z.array(z.string()).default([]),
   })
   .superRefine((data, ctx) => {
     if (data.type === "link" && !data.url) {
@@ -42,6 +43,7 @@ const updateItemSchema = z.object({
   ),
   language: z.string().nullable().optional().default(null),
   tags: z.array(z.string().trim().min(1)).default([]),
+  collectionIds: z.array(z.string()).default([]),
 });
 
 export type UpdateItemPayload = z.input<typeof updateItemSchema>;
