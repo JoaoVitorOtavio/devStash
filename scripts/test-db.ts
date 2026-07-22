@@ -64,7 +64,9 @@ async function main() {
       orderBy: { createdAt: 'desc' },
       include: {
         type: true,
-        collection: true,
+        collections: {
+          include: { collection: true }
+        },
       }
     });
 
@@ -72,7 +74,7 @@ async function main() {
     if (recentItems.length > 0) {
       recentItems.forEach(item => {
         const typeIcon = item.type.icon;
-        const collName = item.collection?.name || 'Uncategorized';
+        const collName = item.collections.map(ic => ic.collection.name).join(', ') || 'Uncategorized';
         console.log(`  - [${item.type.name.toUpperCase()}] ${item.title} (in: ${collName})`);
       });
     } else {

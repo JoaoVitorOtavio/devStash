@@ -81,7 +81,9 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
     orderBy: { createdAt: 'desc' },
     include: {
       type: true,
-      collection: true,
+      collections: {
+        include: { collection: true }
+      },
       tags: {
         include: {
           tag: true
@@ -102,10 +104,10 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
       icon: item.type.icon,
       color: item.type.color
     },
-    collection: item.collection ? {
-      id: item.collection.id,
-      name: item.collection.name
-    } : null,
+    collections: item.collections.map(ic => ({
+      id: ic.collection.id,
+      name: ic.collection.name
+    })),
     tags: item.tags.map(it => it.tag.name),
     isFavorite: item.isFavorite,
     isPinned: item.isPinned,
@@ -116,7 +118,9 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
 
 const itemDetailInclude = {
   type: true,
-  collection: true,
+  collections: {
+    include: { collection: true }
+  },
   tags: {
     include: {
       tag: true
@@ -140,7 +144,7 @@ function mapItemDetail(item: {
   createdAt: Date;
   updatedAt: Date;
   type: { id: string; name: string; icon: string | null; color: string | null };
-  collection: { id: string; name: string } | null;
+  collections: { collection: { id: string; name: string } }[];
   tags: { tag: { name: string } }[];
 }) {
   return {
@@ -160,10 +164,10 @@ function mapItemDetail(item: {
       icon: item.type.icon,
       color: item.type.color
     },
-    collection: item.collection ? {
-      id: item.collection.id,
-      name: item.collection.name
-    } : null,
+    collections: item.collections.map(ic => ({
+      id: ic.collection.id,
+      name: ic.collection.name
+    })),
     tags: item.tags.map(it => it.tag.name),
     isFavorite: item.isFavorite,
     isPinned: item.isPinned,
@@ -192,11 +196,19 @@ export interface UpdateItemInput {
   url: string | null;
   language: string | null;
   tags: string[];
+  collectionIds: string[];
 }
 
 export async function updateItem(userId: string, id: string, data: UpdateItemInput) {
   const existing = await prisma.item.findUnique({ where: { id, userId } });
   if (!existing) return null;
+
+  const ownedCollections = data.collectionIds.length > 0
+    ? await prisma.collection.findMany({
+        where: { id: { in: data.collectionIds }, userId },
+        select: { id: true },
+      })
+    : [];
 
   await prisma.$transaction(async (tx) => {
     await tx.item.update({
@@ -218,6 +230,12 @@ export async function updateItem(userId: string, id: string, data: UpdateItemInp
 
       await tx.itemTag.create({ data: { itemId: id, tagId: tag.id } });
     }
+
+    await tx.itemCollection.deleteMany({ where: { itemId: id } });
+
+    for (const collection of ownedCollections) {
+      await tx.itemCollection.create({ data: { itemId: id, collectionId: collection.id } });
+    }
   });
 
   const updated = await prisma.item.findUnique({
@@ -236,6 +254,7 @@ export interface CreateItemInput {
   url: string | null;
   language: string | null;
   tags: string[];
+  collectionIds: string[];
 }
 
 export async function createItem(userId: string, data: CreateItemInput) {
@@ -246,6 +265,13 @@ export async function createItem(userId: string, data: CreateItemInput) {
     },
   });
   if (!type) return null;
+
+  const ownedCollections = data.collectionIds.length > 0
+    ? await prisma.collection.findMany({
+        where: { id: { in: data.collectionIds }, userId },
+        select: { id: true },
+      })
+    : [];
 
   const created = await prisma.$transaction(async (tx) => {
     const item = await tx.item.create({
@@ -266,6 +292,10 @@ export async function createItem(userId: string, data: CreateItemInput) {
         ?? await tx.tag.create({ data: { userId, name: tagName } });
 
       await tx.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+    }
+
+    for (const collection of ownedCollections) {
+      await tx.itemCollection.create({ data: { itemId: item.id, collectionId: collection.id } });
     }
 
     return item;

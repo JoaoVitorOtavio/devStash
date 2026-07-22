@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/dashboard/code-editor";
 import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
+import { CollectionMultiSelect } from "@/components/dashboard/collection-multi-select";
 import { createItem } from "@/actions/items";
 import { getIcon } from "@/server/icons";
 
@@ -57,6 +58,7 @@ interface CreateForm {
   url: string;
   language: string;
   tags: string;
+  collectionIds: string[];
 }
 
 const EMPTY_FORM: CreateForm = {
@@ -67,14 +69,16 @@ const EMPTY_FORM: CreateForm = {
   url: "",
   language: "",
   tags: "",
+  collectionIds: [],
 };
 
 interface ItemCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  collections: { id: string; name: string }[];
 }
 
-export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) {
+export function ItemCreateDialog({ open, onOpenChange, collections }: ItemCreateDialogProps) {
   const router = useRouter();
   const [form, setForm] = useState<CreateForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -107,6 +111,7 @@ export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) 
       url: form.url || null,
       language: form.language || null,
       tags,
+      collectionIds: form.collectionIds,
     });
 
     setSaving(false);
@@ -230,6 +235,15 @@ export function ItemCreateDialog({ open, onOpenChange }: ItemCreateDialogProps) 
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
               placeholder="tag1, tag2, tag3"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Collections</label>
+            <CollectionMultiSelect
+              collections={collections}
+              selectedIds={form.collectionIds}
+              onChange={(collectionIds) => setForm({ ...form, collectionIds })}
             />
           </div>
 

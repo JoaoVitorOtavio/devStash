@@ -110,6 +110,7 @@ describe('Items Server Actions', () => {
       url: null,
       language: null,
       tags: ['tag1'],
+      collectionIds: ['col-1'],
     };
 
     it('should return unauthorized when there is no session', async () => {
@@ -175,6 +176,7 @@ describe('Items Server Actions', () => {
         url: null,
         language: null,
         tags: ['tag1'],
+        collectionIds: ['col-1'],
       });
       expect(result).toEqual({ success: true, data: updated });
     });
@@ -189,6 +191,7 @@ describe('Items Server Actions', () => {
       url: null,
       language: 'javascript',
       tags: ['tag1'],
+      collectionIds: ['col-1'],
     };
 
     it('should return unauthorized when there is no session', async () => {
@@ -254,6 +257,7 @@ describe('Items Server Actions', () => {
         url: null,
         language: 'javascript',
         tags: ['tag1'],
+        collectionIds: ['col-1'],
       });
       expect(result).toEqual({ success: true, data: created });
     });

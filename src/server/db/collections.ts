@@ -14,12 +14,16 @@ export const getRecentCollections = cache(async (userId: string, limit = 4) => {
       },
       items: {
         select: {
-          type: {
+          item: {
             select: {
-              id: true,
-              name: true,
-              icon: true,
-              color: true
+              type: {
+                select: {
+                  id: true,
+                  name: true,
+                  icon: true,
+                  color: true
+                }
+              }
             }
           }
         }
@@ -30,9 +34,9 @@ export const getRecentCollections = cache(async (userId: string, limit = 4) => {
   return collections.map(collection => {
     // Extract unique types and their counts
     const typeCounts: Record<string, { count: number, color: string, icon: string, name: string }> = {};
-    
-    collection.items.forEach(item => {
-      const type = item.type;
+
+    collection.items.forEach(itemCollection => {
+      const type = itemCollection.item.type;
       if (!typeCounts[type.id]) {
         typeCounts[type.id] = { 
           count: 0, 

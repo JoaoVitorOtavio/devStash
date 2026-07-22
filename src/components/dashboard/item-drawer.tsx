@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeEditor } from "@/components/dashboard/code-editor";
 import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
+import { CollectionMultiSelect } from "@/components/dashboard/collection-multi-select";
 import { getIcon } from "@/server/icons";
 import { cn } from "@/server/utils";
 import { toggleItemFavorite, toggleItemPin, updateItem, deleteItem } from "@/actions/items";
@@ -55,10 +56,10 @@ interface ItemDetail {
     icon: string | null;
     color: string | null;
   };
-  collection: {
+  collections: {
     id: string;
     name: string;
-  } | null;
+  }[];
   tags: string[];
   isFavorite: boolean;
   isPinned: boolean;
@@ -70,6 +71,7 @@ interface ItemDrawerProps {
   itemId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  collections: { id: string; name: string }[];
 }
 
 interface EditForm {
@@ -79,6 +81,7 @@ interface EditForm {
   url: string;
   language: string;
   tags: string;
+  collectionIds: string[];
 }
 
 function toEditForm(item: ItemDetail): EditForm {
@@ -89,10 +92,11 @@ function toEditForm(item: ItemDetail): EditForm {
     url: item.url ?? "",
     language: item.language ?? "",
     tags: item.tags.join(", "),
+    collectionIds: item.collections.map((c) => c.id),
   };
 }
 
-export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
+export function ItemDrawer({ itemId, open, onOpenChange, collections }: ItemDrawerProps) {
   const router = useRouter();
   const [item, setItem] = useState<ItemDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -190,6 +194,7 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
       url: form.url || null,
       language: form.language || null,
       tags,
+      collectionIds: form.collectionIds,
     });
     setSaving(false);
 
@@ -384,6 +389,15 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Collections</label>
+                  <CollectionMultiSelect
+                    collections={collections}
+                    selectedIds={form.collectionIds}
+                    onChange={(collectionIds) => setForm({ ...form, collectionIds })}
+                  />
+                </div>
+
                 <Separator />
 
                 <div className="space-y-2 text-xs text-muted-foreground">
@@ -391,12 +405,6 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                     <span>Type</span>
                     <span className="capitalize">{item.type.name}</span>
                   </div>
-                  {item.collection && (
-                    <div className="flex justify-between">
-                      <span>Collection</span>
-                      <Badge variant="secondary" className="font-normal">{item.collection.name}</Badge>
-                    </div>
-                  )}
                   <div className="flex justify-between">
                     <span>Created</span>
                     <span>{new Date(item.createdAt).toLocaleDateString()}</span>
@@ -474,10 +482,16 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
               <Separator />
 
               <div className="space-y-2 text-xs text-muted-foreground">
-                {item.collection && (
-                  <div className="flex justify-between">
-                    <span>Collection</span>
-                    <Badge variant="secondary" className="font-normal">{item.collection.name}</Badge>
+                {item.collections.length > 0 && (
+                  <div className="flex justify-between gap-2">
+                    <span className="shrink-0">Collections</span>
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {item.collections.map((collection) => (
+                        <Badge key={collection.id} variant="secondary" className="font-normal">
+                          {collection.name}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {item.language && (

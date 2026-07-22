@@ -63,12 +63,12 @@ export default async function DashboardLayout({
             </div>
             <div className="flex items-center gap-3">
               <CollectionCreateButton />
-              <ItemCreateButton />
+              <ItemCreateButton collections={collections} />
             </div>
           </header>
           <main className="flex flex-1 flex-col gap-4 p-4 pt-20 overflow-y-auto">
             <div className="min-h-full flex-1">
-              <ItemDrawerProvider>{children}</ItemDrawerProvider>
+              <ItemDrawerProvider collections={collections}>{children}</ItemDrawerProvider>
             </div>
           </main>
         </div>
