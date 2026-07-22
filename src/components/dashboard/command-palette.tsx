@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Folder } from "lucide-react";
 import { getIcon } from "@/server/icons";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
-import { encodeSearchValue, searchValueFilter } from "@/server/search-filter";
+import { searchValueFilter } from "@/server/search-filter";
 import {
   CommandDialog,
   CommandEmpty,
@@ -66,7 +66,8 @@ export function CommandPalette({ open, onOpenChange, items, collections }: Comma
               return (
                 <CommandItem
                   key={item.id}
-                  value={encodeSearchValue(item.title, item.contentPreview)}
+                  value={item.title}
+                  keywords={item.contentPreview ? [item.contentPreview] : undefined}
                   onSelect={() => handleSelectItem(item.id)}
                 >
                   <Icon className="h-4 w-4 shrink-0" style={{ color: item.type.color || undefined }} />
@@ -88,7 +89,7 @@ export function CommandPalette({ open, onOpenChange, items, collections }: Comma
             {collections.map((collection) => (
               <CommandItem
                 key={collection.id}
-                value={encodeSearchValue(collection.name)}
+                value={collection.name}
                 onSelect={() => handleSelectCollection(collection.id)}
               >
                 <Folder className="h-4 w-4 shrink-0 text-primary" />
