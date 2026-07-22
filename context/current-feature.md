@@ -1,11 +1,24 @@
-# Current Feature
+# Current Feature: Collection Card Actions (Edit, Delete, Favorite Icon)
 
 ## Status
-Not Started
+In Progress
 
 ## Goals
+- `/collections/[id]` page: add Edit, Delete, Favorite buttons (header area near collection title).
+  - Favorite: icon/button only, no backend behavior yet.
+  - Edit: opens modal to edit collection metadata (name, description).
+  - Delete: confirmation dialog before delete. Deleting collection must NOT delete its items — items just lose the collection association (remove `ItemCollection` join rows only).
+- `CollectionCard` (used on `/collections` list and dashboard `RecentCollections`): add 3-dot menu (dropdown) with Edit, Delete, Favorite entries.
+  - Clicking the 3-dot icon opens dropdown, does not navigate.
+  - Clicking anywhere else on the card navigates to `/collections/[id]` (existing Link behavior).
+  - Same Edit modal / Delete confirmation reused from the detail page.
 
 ## Notes
+- Favorite is UI-only for now (icon/button present, wired to nothing) — no schema change, no action, matches spec "do not implement favorites yet".
+- Edit: needs an `updateCollection` query (`src/server/db/collections.ts`) + server action, Zod-validated, `{ success, data, error }` pattern, following `createCollection`/API-route convention already used for collections.
+- Delete: needs a `deleteCollection` query — delete `ItemCollection` rows for that collection, then the collection row, in a transaction; ownership check via `userId`. Items themselves untouched.
+- Reuse shadcn `Dialog` for edit (matches `CollectionCreateDialog`), `AlertDialog` for delete confirm (matches item delete pattern), and add shadcn `DropdownMenu` primitive for the 3-dot card menu if not already present.
+- `router.refresh()` after edit/delete so lists stay in sync, same as existing patterns.
 
 ## History
 - 2026-07-22: Completed Collection Pages:

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Folder } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getIcon } from "@/server/icons";
+import { CollectionCardMenu } from "@/components/dashboard/collection-card-menu";
 
 interface CollectionType {
   id: string;
@@ -16,9 +17,10 @@ export interface CollectionCardProps {
   description: string | null;
   itemCount: number;
   types: CollectionType[];
+  isFavorite?: boolean;
 }
 
-export function CollectionCard({ id, name, description, itemCount, types }: CollectionCardProps) {
+export function CollectionCard({ id, name, description, itemCount, types, isFavorite }: CollectionCardProps) {
   // Generate gradient string from type colors
   const typeColors = types.map(t => t.color);
   const gradient = typeColors.length > 1
@@ -51,7 +53,14 @@ export function CollectionCard({ id, name, description, itemCount, types }: Coll
           items: {itemCount}
         </div>
 
-        <CardHeader className="flex flex-row items-start space-y-0 pb-2 pl-6 pr-6">
+        <CollectionCardMenu
+          collectionId={id}
+          name={name}
+          description={description}
+          isFavorite={isFavorite}
+        />
+
+        <CardHeader className="flex flex-row items-start space-y-0 pb-2 pl-6 pr-10">
           <div className="flex items-center gap-3 w-full min-w-0">
             <div className="p-2 rounded-lg bg-primary/10 shrink-0">
               <Folder className="h-5 w-5 text-primary" />
