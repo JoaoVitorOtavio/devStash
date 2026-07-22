@@ -8,6 +8,15 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-22: Completed Collection Pages:
+  - Refactored `src/server/db/collections.ts`: extracted the shared type-breakdown mapping (`mapCollectionWithStats`) used by `getRecentCollections`; added `getAllCollectionsWithStats(userId)` (same shape, no limit) and `getCollectionWithItems(userId, collectionId)` (ownership-checked via `where: { id, userId }`, returns the collection plus its items mapped to the `ItemCard` shape through the `ItemCollection` join table).
+  - Extracted `CollectionCard` (`src/components/dashboard/collection-card.tsx`) from the markup previously inlined in `RecentCollections`, now wrapped in a `Link` to `/collections/[id]`; reused by both `RecentCollections` and the new `/collections` list page.
+  - Added `src/app/collections/page.tsx`: lists all of the user's collections as `CollectionCard`s, following the same server-component + lib/db pattern as `/items/[type]`.
+  - Added `src/app/collections/[id]/page.tsx`: shows the collection's items via the existing `ItemCard` grid (same layout as `/items/[type]`), with a 404 for a missing or not-owned collection.
+  - `RecentCollections`'s "View all" changed from a static button to a `Link` to `/collections`; the sidebar's "View all collections" and favorite/recent collection links already pointed at the right routes.
+  - Fixed a card-height inconsistency in `CollectionCard`: collections with no items (thus no type-icon row) rendered shorter than others — added `min-h-6` to the icon row so all cards stay the same height regardless of content.
+  - Unit test coverage for `getAllCollectionsWithStats` and `getCollectionWithItems` (guest fallback, ownership, mapping), 52 tests passing.
+  - Verified end-to-end in the browser via Playwright MCP: `/collections` lists all 7 collections as clickable cards; `/collections/[id]` renders the right items via `ItemCard` (including an item assigned to multiple collections from a prior feature) and opens the item drawer correctly; sidebar and dashboard widget links navigate to the right collection; confirmed the card-height fix visually via screenshot — no console errors throughout.
 - 2026-07-21: Completed Item-Collection Assignment:
   - Schema change: replaced `Item.collectionId` (single, optional FK) with a many-to-many join table `ItemCollection` (itemId, collectionId), mirroring the existing `ItemTag` pattern.
   - Hand-authored the migration SQL (`prisma migrate dev --create-only` doesn't support this non-interactive shell) to create the join table, backfill existing single-collection assignments into it, then drop the old column; applied via `prisma migrate deploy` against the Neon `development` branch and verified row counts (15 backfilled rows) via Neon MCP.
