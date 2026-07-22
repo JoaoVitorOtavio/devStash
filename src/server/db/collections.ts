@@ -182,3 +182,39 @@ export async function createCollection(userId: string, data: CreateCollectionInp
     updatedAt: collection.updatedAt,
   };
 }
+
+export interface UpdateCollectionInput {
+  name: string;
+  description: string | null;
+}
+
+export async function updateCollection(userId: string, id: string, data: UpdateCollectionInput) {
+  const existing = await prisma.collection.findUnique({ where: { id, userId } });
+  if (!existing) return null;
+
+  const collection = await prisma.collection.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+    },
+  });
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    updatedAt: collection.updatedAt,
+  };
+}
+
+export async function deleteCollection(userId: string, id: string) {
+  const existing = await prisma.collection.findUnique({ where: { id, userId } });
+  if (!existing) return false;
+
+  // ItemCollection rows cascade-delete with the collection; items themselves are untouched.
+  await prisma.collection.delete({ where: { id } });
+
+  return true;
+}

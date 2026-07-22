@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection, getAllCollectionsWithStats, getCollectionWithItems } from './collections';
+import { createCollection, getAllCollectionsWithStats, getCollectionWithItems, updateCollection, deleteCollection } from './collections';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => ({
@@ -8,6 +8,8 @@ vi.mock('@/server/prisma', () => ({
       create: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }));
@@ -137,6 +139,69 @@ describe('Collections DB Utilities', () => {
       const result = await getCollectionWithItems('guest-id', 'col-1');
       expect(result).toBeNull();
       expect(prisma.collection.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateCollection', () => {
+    it('should update the collection when owned by the user', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue({ id: 'col-1', userId: 'user-123' });
+      const updatedRow = {
+        id: 'col-1',
+        name: 'Renamed',
+        description: 'New description',
+        isFavorite: false,
+        updatedAt: new Date(),
+      };
+      (prisma.collection.update as any).mockResolvedValue(updatedRow);
+
+      const result = await updateCollection('user-123', 'col-1', {
+        name: 'Renamed',
+        description: 'New description',
+      });
+
+      expect(prisma.collection.findUnique).toHaveBeenCalledWith({ where: { id: 'col-1', userId: 'user-123' } });
+      expect(prisma.collection.update).toHaveBeenCalledWith({
+        where: { id: 'col-1' },
+        data: { name: 'Renamed', description: 'New description' },
+      });
+      expect(result).toEqual({
+        id: 'col-1',
+        name: 'Renamed',
+        description: 'New description',
+        isFavorite: false,
+        updatedAt: updatedRow.updatedAt,
+      });
+    });
+
+    it('should return null when the collection is not owned by the user', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue(null);
+
+      const result = await updateCollection('user-123', 'missing-id', { name: 'Renamed', description: null });
+
+      expect(result).toBeNull();
+      expect(prisma.collection.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteCollection', () => {
+    it('should delete the collection when owned by the user', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue({ id: 'col-1', userId: 'user-123' });
+      (prisma.collection.delete as any).mockResolvedValue({ id: 'col-1' });
+
+      const result = await deleteCollection('user-123', 'col-1');
+
+      expect(prisma.collection.findUnique).toHaveBeenCalledWith({ where: { id: 'col-1', userId: 'user-123' } });
+      expect(prisma.collection.delete).toHaveBeenCalledWith({ where: { id: 'col-1' } });
+      expect(result).toBe(true);
+    });
+
+    it('should return false when the collection is not owned by the user', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue(null);
+
+      const result = await deleteCollection('user-123', 'missing-id');
+
+      expect(result).toBe(false);
+      expect(prisma.collection.delete).not.toHaveBeenCalled();
     });
   });
 });
