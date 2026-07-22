@@ -1,6 +1,75 @@
 import { prisma } from "@/server/prisma";
 import { cache } from "react";
 
+const collectionStatsInclude = {
+  _count: {
+    select: { items: true }
+  },
+  items: {
+    select: {
+      item: {
+        select: {
+          type: {
+            select: {
+              id: true,
+              name: true,
+              icon: true,
+              color: true
+            }
+          }
+        }
+      }
+    }
+  }
+} as const;
+
+function mapCollectionWithStats(collection: {
+  id: string;
+  name: string;
+  description: string | null;
+  isFavorite: boolean;
+  updatedAt: Date;
+  _count: { items: number };
+  items: { item: { type: { id: string; name: string; icon: string | null; color: string | null } } }[];
+}) {
+  // Extract unique types and their counts
+  const typeCounts: Record<string, { count: number, color: string, icon: string, name: string }> = {};
+
+  collection.items.forEach(itemCollection => {
+    const type = itemCollection.item.type;
+    if (!typeCounts[type.id]) {
+      typeCounts[type.id] = {
+        count: 0,
+        color: type.color || '#3b82f6',
+        icon: type.icon || 'Folder',
+        name: type.name
+      };
+    }
+    typeCounts[type.id].count++;
+  });
+
+  const types = Object.keys(typeCounts).map(id => ({
+    id,
+    ...typeCounts[id]
+  }));
+
+  // Determine primary type (most frequent)
+  const primaryType = types.length > 0
+    ? types.reduce((prev, current) => (prev.count > current.count) ? prev : current)
+    : null;
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    itemCount: collection._count.items,
+    isFavorite: collection.isFavorite,
+    types: types,
+    primaryColor: primaryType?.color || 'var(--color-primary)',
+    updatedAt: collection.updatedAt
+  };
+}
+
 export const getRecentCollections = cache(async (userId: string, limit = 4) => {
   if (userId === "guest-id") return [];
 
@@ -8,21 +77,37 @@ export const getRecentCollections = cache(async (userId: string, limit = 4) => {
     where: { userId },
     take: limit,
     orderBy: { updatedAt: 'desc' },
+    include: collectionStatsInclude
+  });
+
+  return collections.map(mapCollectionWithStats);
+});
+
+export const getAllCollectionsWithStats = cache(async (userId: string) => {
+  if (userId === "guest-id") return [];
+
+  const collections = await prisma.collection.findMany({
+    where: { userId },
+    orderBy: { updatedAt: 'desc' },
+    include: collectionStatsInclude
+  });
+
+  return collections.map(mapCollectionWithStats);
+});
+
+export const getCollectionWithItems = cache(async (userId: string, collectionId: string) => {
+  if (userId === "guest-id") return null;
+
+  const collection = await prisma.collection.findUnique({
+    where: { id: collectionId, userId },
     include: {
-      _count: {
-        select: { items: true }
-      },
       items: {
-        select: {
+        include: {
           item: {
-            select: {
-              type: {
-                select: {
-                  id: true,
-                  name: true,
-                  icon: true,
-                  color: true
-                }
+            include: {
+              type: true,
+              tags: {
+                include: { tag: true }
               }
             }
           }
@@ -31,44 +116,32 @@ export const getRecentCollections = cache(async (userId: string, limit = 4) => {
     }
   });
 
-  return collections.map(collection => {
-    // Extract unique types and their counts
-    const typeCounts: Record<string, { count: number, color: string, icon: string, name: string }> = {};
+  if (!collection) return null;
 
-    collection.items.forEach(itemCollection => {
-      const type = itemCollection.item.type;
-      if (!typeCounts[type.id]) {
-        typeCounts[type.id] = { 
-          count: 0, 
-          color: type.color || '#3b82f6', 
-          icon: type.icon || 'Folder',
-          name: type.name
-        };
-      }
-      typeCounts[type.id].count++;
-    });
-
-    const types = Object.keys(typeCounts).map(id => ({
-      id,
-      ...typeCounts[id]
-    }));
-
-    // Determine primary type (most frequent)
-    const primaryType = types.length > 0 
-      ? types.reduce((prev, current) => (prev.count > current.count) ? prev : current)
-      : null;
-
-    return {
-      id: collection.id,
-      name: collection.name,
-      description: collection.description,
-      itemCount: collection._count.items,
-      isFavorite: collection.isFavorite,
-      types: types,
-      primaryColor: primaryType?.color || 'var(--color-primary)',
-      updatedAt: collection.updatedAt
-    };
-  });
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    items: collection.items.map(({ item }) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      content: item.content,
+      url: item.url,
+      type: {
+        id: item.type.id,
+        name: item.type.name,
+        icon: item.type.icon,
+        color: item.type.color
+      },
+      tags: item.tags.map(it => it.tag.name),
+      isFavorite: item.isFavorite,
+      isPinned: item.isPinned,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt
+    }))
+  };
 });
 
 export const getAllCollections = cache(async (userId: string) => {
