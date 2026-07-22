@@ -1,0 +1,29 @@
+function scoreMatch(text: string, search: string): number {
+  if (!search) return 1;
+  if (!text) return 0;
+
+  const normalizedText = text.toLowerCase();
+  const normalizedSearch = search.toLowerCase();
+
+  if (normalizedText === normalizedSearch) return 1;
+  if (normalizedText.startsWith(normalizedSearch)) return 0.9;
+  if (normalizedText.includes(normalizedSearch)) return 0.7;
+  return 0;
+}
+
+/**
+ * cmdk's default filter fuzzy-matches character subsequences across the
+ * whole `value` plus `keywords` blob, so a short query (e.g. "test")
+ * trivially appears as a scattered subsequence inside any long content
+ * preview passed as a keyword. This scores `value` (the title/name) as a
+ * substring match first, and only falls back to the keywords (content
+ * preview) at a lower weight, so unrelated items stop flooding the results
+ * for common short queries.
+ */
+export function searchValueFilter(value: string, search: string, keywords?: string[]): number {
+  const valueScore = scoreMatch(value, search);
+  if (valueScore > 0) return valueScore;
+
+  const keywordScore = Math.max(0, ...(keywords ?? []).map((keyword) => scoreMatch(keyword, search)));
+  return keywordScore > 0 ? keywordScore * 0.4 : 0;
+}
