@@ -1,20 +1,24 @@
-# Current Feature: Pagination
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Add pagination to /items/[type] and /collections/[id] pages
-- Pagination controls at bottom: numbered page links + prev/next
-- Prev/next greyed out (disabled) when not available
-- Constants: ITEMS_PER_PAGE = 21, COLLECTIONS_PER_PAGE = 21
-- Dashboard limits: DASHBOARD_COLLECTIONS_LIMIT = 6, DASHBOARD_RECENT_ITEMS_LIMIT = 10
-- Queries must only fetch the page's slice, not all rows
 
 ## Notes
-Source: context/features/pagination-spec.md
 
 ## History
+- 2026-07-24: Completed Pagination:
+  - Added `src/server/constants.ts`: `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE` = 21, `DASHBOARD_COLLECTIONS_LIMIT` = 6, `DASHBOARD_RECENT_ITEMS_LIMIT` = 10.
+  - `getItemsByType` (`src/server/db/items.ts`) now takes a `page` argument and returns `{ items, totalCount }`, using `skip`/`take` plus a parallel `prisma.item.count`.
+  - `getAllCollectionsWithStats` and `getCollectionWithItems` (`src/server/db/collections.ts`) likewise take `page` and return `{ collections/items, totalCount }`; `getCollectionWithItems` paginates the nested `items` relation directly in the `include` (single query, no separate join-table fetch).
+  - Added `src/components/dashboard/pagination-controls.tsx`: numbered page links (with ellipsis windowing for large page counts) plus prev/next, both disabled/greyed out when unavailable.
+  - Wired pagination into `/items/[type]`, `/collections`, and `/collections/[id]` — each reads `page` from `searchParams`, computes `totalPages`, and renders `PaginationControls`. Scope was expanded to include the plain `/collections` list (not just `/collections/[id]`) after confirming with the user, since it was fetching all rows unpaginated and the spec's `COLLECTIONS_PER_PAGE` constant implied it should be covered too.
+  - Applied the new dashboard-limit constants at the `getRecentCollections`/`getRecentItems` call sites in `src/app/dashboard/layout.tsx` and `src/app/dashboard/page.tsx`.
+  - Found and fixed a collateral break during implementation: pagination on `getAllCollectionsWithStats` broke the Cmd/Ctrl+K command palette, which needs every collection to search across, not one page. Added a dedicated lightweight `getAllCollectionsForSearch(userId)` (unpaginated, `{ id, name, itemCount }` shape) and pointed `DashboardLayout`'s search-data fetch at it instead.
+  - Added a pending-state UX improvement after user feedback that clicking a page link gave no feedback while the new page loaded: converted `PaginationControls` to a client component using `useTransition` + `router.push`, showing a spinner on the clicked page number and disabling the rest of the control until navigation resolves.
+  - Unit test coverage for the paginated queries (page-slice `skip`/`take` assertions, guest fallback, existing shape assertions updated) and the new `getAllCollectionsForSearch`, 78 tests passing.
+  - Verified end-to-end in the browser via Playwright MCP: temporarily lowered `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE` to 2 to force multi-page state against the seeded data (which only has 19 items / 6 collections, too few to naturally paginate at 21), confirmed numbered links, active-page styling, prev/next disabled states, and page navigation across all three routes, then reverted the constants back to 21 — no console errors throughout.
 - 2026-07-22: Completed Global Search / Command Palette:
   - Added `getAllItemsForSearch(userId)` in `src/server/db/items.ts`: lightweight shape (id, title, type, contentPreview truncated to 100 chars), following the same `cache`/guest-fallback convention as the other `getAll*` queries.
   - Added the shadcn `Command` UI primitive (`src/components/ui/command.tsx`, `cmdk` package) — `CommandDialog` wraps `Dialog` with a screen-reader-only title/description and forwards a `filter`/`shouldFilter` prop through to the inner `Command`.
