@@ -1,5 +1,6 @@
 import { prisma } from "@/server/prisma";
 import { cache } from "react";
+import { ITEMS_PER_PAGE } from "@/server/constants";
 
 export const getPinnedItems = cache(async (userId: string, limit = 4) => {
   if (userId === "guest-id") return [];
@@ -343,43 +344,53 @@ export async function deleteItem(userId: string, id: string) {
   return true;
 }
 
-export const getItemsByType = cache(async (userId: string, typeName: string) => {
-  if (userId === "guest-id") return [];
+export const getItemsByType = cache(async (userId: string, typeName: string, page = 1) => {
+  if (userId === "guest-id") return { items: [], totalCount: 0 };
 
-  const items = await prisma.item.findMany({
-    where: {
-      userId,
-      type: {
-        name: typeName
-      }
-    },
-    orderBy: { updatedAt: 'desc' },
-    include: {
-      type: true,
-      tags: {
-        include: {
-          tag: true
+  const where = {
+    userId,
+    type: {
+      name: typeName
+    }
+  };
+
+  const [items, totalCount] = await Promise.all([
+    prisma.item.findMany({
+      where,
+      skip: (page - 1) * ITEMS_PER_PAGE,
+      take: ITEMS_PER_PAGE,
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        type: true,
+        tags: {
+          include: {
+            tag: true
+          }
         }
       }
-    }
-  });
+    }),
+    prisma.item.count({ where }),
+  ]);
 
-  return items.map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    content: item.content,
-    url: item.url,
-    type: {
-      id: item.type.id,
-      name: item.type.name,
-      icon: item.type.icon,
-      color: item.type.color
-    },
-    tags: item.tags.map(it => it.tag.name),
-    isFavorite: item.isFavorite,
-    isPinned: item.isPinned,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt
-  }));
+  return {
+    items: items.map(item => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      content: item.content,
+      url: item.url,
+      type: {
+        id: item.type.id,
+        name: item.type.name,
+        icon: item.type.icon,
+        color: item.type.color
+      },
+      tags: item.tags.map(it => it.tag.name),
+      isFavorite: item.isFavorite,
+      isPinned: item.isPinned,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt
+    })),
+    totalCount,
+  };
 });

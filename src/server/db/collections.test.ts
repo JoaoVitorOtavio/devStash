@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection, getAllCollectionsWithStats, getCollectionWithItems, updateCollection, deleteCollection } from './collections';
+import { createCollection, getAllCollectionsWithStats, getAllCollectionsForSearch, getCollectionWithItems, updateCollection, deleteCollection } from './collections';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => ({
@@ -10,6 +10,7 @@ vi.mock('@/server/prisma', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -69,10 +70,11 @@ describe('Collections DB Utilities', () => {
           ],
         },
       ]);
+      (prisma.collection.count as any).mockResolvedValue(1);
 
       const result = await getAllCollectionsWithStats('user-123');
 
-      expect(result).toEqual([{
+      expect(result.collections).toEqual([{
         id: 'col-1',
         name: 'React Patterns',
         description: 'Reusable patterns',
@@ -82,22 +84,58 @@ describe('Collections DB Utilities', () => {
         primaryColor: '#3b82f6',
         updatedAt,
       }]);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it('should fetch only the requested page slice', async () => {
+      (prisma.collection.findMany as any).mockResolvedValue([]);
+      (prisma.collection.count as any).mockResolvedValue(50);
+
+      await getAllCollectionsWithStats('user-123', 3);
+
+      expect(prisma.collection.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        skip: 42,
+        take: 21,
+      }));
     });
 
     it('should return an empty array for guest users without querying the database', async () => {
       const result = await getAllCollectionsWithStats('guest-id');
+      expect(result).toEqual({ collections: [], totalCount: 0 });
+      expect(prisma.collection.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getAllCollectionsForSearch', () => {
+    it('should return a lightweight shape for every collection, unpaginated', async () => {
+      (prisma.collection.findMany as any).mockResolvedValue([
+        { id: 'col-1', name: 'React Patterns', _count: { items: 3 } },
+      ]);
+
+      const result = await getAllCollectionsForSearch('user-123');
+
+      expect(result).toEqual([{ id: 'col-1', name: 'React Patterns', itemCount: 3 }]);
+      expect(prisma.collection.findMany).toHaveBeenCalledWith(expect.not.objectContaining({
+        skip: expect.anything(),
+        take: expect.anything(),
+      }));
+    });
+
+    it('should return an empty array for guest users without querying the database', async () => {
+      const result = await getAllCollectionsForSearch('guest-id');
       expect(result).toEqual([]);
       expect(prisma.collection.findMany).not.toHaveBeenCalled();
     });
   });
 
   describe('getCollectionWithItems', () => {
-    it('should return the collection with its items for the owning user', async () => {
+    it('should return the collection with its paginated items for the owning user', async () => {
       (prisma.collection.findUnique as any).mockResolvedValue({
         id: 'col-1',
         name: 'React Patterns',
         description: 'Reusable patterns',
         isFavorite: true,
+        _count: { items: 1 },
         items: [
           {
             item: {
@@ -123,9 +161,29 @@ describe('Collections DB Utilities', () => {
         where: { id: 'col-1', userId: 'user-123' },
       }));
       expect(result?.name).toBe('React Patterns');
+      expect(result?.totalItemCount).toBe(1);
       expect(result?.items).toHaveLength(1);
       expect(result?.items[0].title).toBe('Debounce Hook');
       expect(result?.items[0].tags).toEqual(['react']);
+    });
+
+    it('should fetch only the requested page slice of items', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue({
+        id: 'col-1',
+        name: 'React Patterns',
+        description: null,
+        isFavorite: false,
+        _count: { items: 50 },
+        items: [],
+      });
+
+      await getCollectionWithItems('user-123', 'col-1', 3);
+
+      expect(prisma.collection.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+        include: expect.objectContaining({
+          items: expect.objectContaining({ skip: 42, take: 21 }),
+        }),
+      }));
     });
 
     it('should return null when the collection does not exist or is not owned by the user', async () => {

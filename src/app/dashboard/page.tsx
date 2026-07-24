@@ -6,6 +6,7 @@ import { getRecentCollections } from "@/server/db/collections";
 import { getDashboardStats } from "@/server/db/stats";
 import { getPinnedItems, getRecentItems } from "@/server/db/items";
 import { getUserProfile } from "@/server/db/user";
+import { DASHBOARD_COLLECTIONS_LIMIT, DASHBOARD_RECENT_ITEMS_LIMIT } from "@/server/constants";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
@@ -17,12 +18,12 @@ export default async function DashboardPage() {
   }
 
   const user = await getUserProfile(session.user.email!);
-  
+
   const [recentCollections, stats, pinnedItems, recentItems] = await Promise.all([
-    getRecentCollections(user.id),
+    getRecentCollections(user.id, DASHBOARD_COLLECTIONS_LIMIT),
     getDashboardStats(user.id),
     getPinnedItems(user.id),
-    getRecentItems(user.id),
+    getRecentItems(user.id, DASHBOARD_RECENT_ITEMS_LIMIT),
   ]);
 
   return (

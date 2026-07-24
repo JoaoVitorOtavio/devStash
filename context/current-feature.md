@@ -1,11 +1,18 @@
-# Current Feature
+# Current Feature: Pagination
 
 ## Status
-Not Started
+In Progress
 
 ## Goals
+- Add pagination to /items/[type] and /collections/[id] pages
+- Pagination controls at bottom: numbered page links + prev/next
+- Prev/next greyed out (disabled) when not available
+- Constants: ITEMS_PER_PAGE = 21, COLLECTIONS_PER_PAGE = 21
+- Dashboard limits: DASHBOARD_COLLECTIONS_LIMIT = 6, DASHBOARD_RECENT_ITEMS_LIMIT = 10
+- Queries must only fetch the page's slice, not all rows
 
 ## Notes
+Source: context/features/pagination-spec.md
 
 ## History
 - 2026-07-22: Completed Global Search / Command Palette:

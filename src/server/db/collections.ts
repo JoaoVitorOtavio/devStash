@@ -1,5 +1,6 @@
 import { prisma } from "@/server/prisma";
 import { cache } from "react";
+import { COLLECTIONS_PER_PAGE, ITEMS_PER_PAGE } from "@/server/constants";
 
 const collectionStatsInclude = {
   _count: {
@@ -83,25 +84,55 @@ export const getRecentCollections = cache(async (userId: string, limit = 4) => {
   return collections.map(mapCollectionWithStats);
 });
 
-export const getAllCollectionsWithStats = cache(async (userId: string) => {
+export const getAllCollectionsForSearch = cache(async (userId: string) => {
   if (userId === "guest-id") return [];
 
   const collections = await prisma.collection.findMany({
     where: { userId },
     orderBy: { updatedAt: 'desc' },
-    include: collectionStatsInclude
+    include: { _count: { select: { items: true } } }
   });
 
-  return collections.map(mapCollectionWithStats);
+  return collections.map(collection => ({
+    id: collection.id,
+    name: collection.name,
+    itemCount: collection._count.items,
+  }));
 });
 
-export const getCollectionWithItems = cache(async (userId: string, collectionId: string) => {
+export const getAllCollectionsWithStats = cache(async (userId: string, page = 1) => {
+  if (userId === "guest-id") return { collections: [], totalCount: 0 };
+
+  const where = { userId };
+
+  const [collections, totalCount] = await Promise.all([
+    prisma.collection.findMany({
+      where,
+      skip: (page - 1) * COLLECTIONS_PER_PAGE,
+      take: COLLECTIONS_PER_PAGE,
+      orderBy: { updatedAt: 'desc' },
+      include: collectionStatsInclude
+    }),
+    prisma.collection.count({ where }),
+  ]);
+
+  return {
+    collections: collections.map(mapCollectionWithStats),
+    totalCount,
+  };
+});
+
+export const getCollectionWithItems = cache(async (userId: string, collectionId: string, page = 1) => {
   if (userId === "guest-id") return null;
 
   const collection = await prisma.collection.findUnique({
     where: { id: collectionId, userId },
     include: {
+      _count: { select: { items: true } },
       items: {
+        skip: (page - 1) * ITEMS_PER_PAGE,
+        take: ITEMS_PER_PAGE,
+        orderBy: { item: { updatedAt: 'desc' } },
         include: {
           item: {
             include: {
@@ -123,6 +154,7 @@ export const getCollectionWithItems = cache(async (userId: string, collectionId:
     name: collection.name,
     description: collection.description,
     isFavorite: collection.isFavorite,
+    totalItemCount: collection._count.items,
     items: collection.items.map(({ item }) => ({
       id: item.id,
       title: item.title,

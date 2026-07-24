@@ -2,16 +2,25 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getAllCollectionsWithStats } from "@/server/db/collections";
 import { CollectionCard } from "@/components/dashboard/collection-card";
+import { PaginationControls } from "@/components/dashboard/pagination-controls";
+import { COLLECTIONS_PER_PAGE } from "@/server/constants";
 import DashboardLayout from "../dashboard/layout";
 
-export default async function CollectionsPage() {
+export default async function CollectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
   const session = await auth();
 
   if (!session?.user) {
     redirect("/sign-in");
   }
 
-  const collections = await getAllCollectionsWithStats(session.user.id);
+  const { collections, totalCount } = await getAllCollectionsWithStats(session.user.id, page);
+  const totalPages = Math.ceil(totalCount / COLLECTIONS_PER_PAGE);
 
   return (
     <DashboardLayout>
@@ -28,11 +37,18 @@ export default async function CollectionsPage() {
             <p className="text-muted-foreground">No collections yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {collections.map((collection) => (
-              <CollectionCard key={collection.id} {...collection} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {collections.map((collection) => (
+                <CollectionCard key={collection.id} {...collection} />
+              ))}
+            </div>
+            <PaginationControls
+              currentPage={page}
+              totalPages={totalPages}
+              basePath="/collections"
+            />
+          </>
         )}
       </div>
     </DashboardLayout>

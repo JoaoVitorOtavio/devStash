@@ -10,6 +10,7 @@ vi.mock('@/server/prisma', () => {
       update: vi.fn(),
       delete: vi.fn(),
       create: vi.fn(),
+      count: vi.fn(),
     },
     itemType: {
       findMany: vi.fn(),
@@ -133,16 +134,30 @@ describe('Items DB Utilities', () => {
         },
       ];
       (prisma.item.findMany as any).mockResolvedValue(mockItems);
+      (prisma.item.count as any).mockResolvedValue(1);
 
       const result = await getItemsByType('user-123', 'Snippet');
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe('Test Item');
-      expect(result[0].tags).toEqual(['tag1']);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe('Test Item');
+      expect(result.items[0].tags).toEqual(['tag1']);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it('should fetch only the requested page slice', async () => {
+      (prisma.item.findMany as any).mockResolvedValue([]);
+      (prisma.item.count as any).mockResolvedValue(50);
+
+      await getItemsByType('user-123', 'Snippet', 3);
+
+      expect(prisma.item.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        skip: 42,
+        take: 21,
+      }));
     });
 
     it('should return empty array for guest users', async () => {
       const result = await getItemsByType('guest-id', 'Snippet');
-      expect(result).toEqual([]);
+      expect(result).toEqual({ items: [], totalCount: 0 });
       expect(prisma.item.findMany).not.toHaveBeenCalled();
     });
   });

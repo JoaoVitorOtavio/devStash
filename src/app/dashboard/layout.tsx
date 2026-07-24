@@ -13,7 +13,8 @@ import { SearchTrigger } from "@/components/dashboard/search-trigger";
 import { ItemCreateButton } from "@/components/dashboard/item-create-button";
 import { CollectionCreateButton } from "@/components/dashboard/collection-create-button";
 import { getItemTypes, getAllItemsForSearch } from "@/server/db/items";
-import { getAllCollections, getAllCollectionsWithStats, getRecentCollections } from "@/server/db/collections";
+import { getAllCollections, getAllCollectionsForSearch, getRecentCollections } from "@/server/db/collections";
+import { DASHBOARD_COLLECTIONS_LIMIT } from "@/server/constants";
 import { getUserProfile } from "@/server/db/user";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
@@ -31,19 +32,13 @@ export default async function DashboardLayout({
 
   const user = await getUserProfile(session.user.email!);
 
-  const [itemTypes, collections, recentCollections, searchItems, collectionsWithStats] = await Promise.all([
+  const [itemTypes, collections, recentCollections, searchItems, searchCollections] = await Promise.all([
     getItemTypes(user.id),
     getAllCollections(user.id),
-    getRecentCollections(user.id),
+    getRecentCollections(user.id, DASHBOARD_COLLECTIONS_LIMIT),
     getAllItemsForSearch(user.id),
-    getAllCollectionsWithStats(user.id),
+    getAllCollectionsForSearch(user.id),
   ]);
-
-  const searchCollections = collectionsWithStats.map((collection) => ({
-    id: collection.id,
-    name: collection.name,
-    itemCount: collection.itemCount,
-  }));
 
   return (
     <SidebarProvider>
