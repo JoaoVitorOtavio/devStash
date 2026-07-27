@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUserProfile } from "@/server/db/user";
 import { ChangePasswordSection } from "@/components/profile/change-password-section";
 import { DeleteAccountButton } from "@/components/profile/delete-account-button";
+import { EditorPreferencesSection } from "@/components/dashboard/editor-preferences-section";
 import DashboardLayout from "../dashboard/layout";
 
 export default async function SettingsPage() {
@@ -25,6 +26,8 @@ export default async function SettingsPage() {
         </div>
 
         <div className="grid gap-6">
+          <EditorPreferencesSection />
+
           {user.hasPassword && (
             <ChangePasswordSection />
           )}

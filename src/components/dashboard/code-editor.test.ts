@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { toMonacoLanguage } from './code-editor';
+
+vi.mock('@/actions/editor-preferences', () => ({
+  updateEditorPreferences: vi.fn(),
+}));
 
 describe('toMonacoLanguage', () => {
   it('returns plaintext for null or undefined', () => {
