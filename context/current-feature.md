@@ -8,6 +8,13 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-27: Completed Settings Page:
+  - Added `src/app/settings/page.tsx`: protected route (auth check + redirect to `/sign-in`, same pattern as `/profile`) holding the `ChangePasswordSection` (conditional on `user.hasPassword`) and the Delete Account block — both components were already self-contained (no props needed beyond what `getUserProfile` provides), so the move was a straight relocation with no prop-threading changes.
+  - Trimmed `src/app/profile/page.tsx` down to the user info card and Usage Statistics card only, removing the now-unused `ChangePasswordSection`/`DeleteAccountButton` imports.
+  - Wired the sidebar's user dropdown "Settings" item (`src/components/dashboard/app-sidebar.tsx`) — previously a dead `DropdownMenuItem` with no `href`/`onClick` — to `Link href="/settings"` via `asChild`.
+  - Scope clarified with the user upfront: the request's "forgot password" referred to the existing Change Password section (for logged-in users), not the separate logged-out `/auth/forgot-password` flow, which stays untouched. A second dead dropdown item ("Account") was flagged as out of scope and left as-is.
+  - No new server actions/utilities/DB queries were added — existing 78 tests still pass unchanged; `npm run build` clean.
+  - Verified end-to-end in the browser via Playwright MCP: confirmed `/settings` renders both sections and `/profile` no longer does, clicked the sidebar dropdown's "Settings" item and confirmed it navigates to `/settings`, opened the Change Password modal from its new location to confirm it still works — no console errors throughout.
 - 2026-07-24: Completed Pagination:
   - Added `src/server/constants.ts`: `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE` = 21, `DASHBOARD_COLLECTIONS_LIMIT` = 6, `DASHBOARD_RECENT_ITEMS_LIMIT` = 10.
   - `getItemsByType` (`src/server/db/items.ts`) now takes a `page` argument and returns `{ items, totalCount }`, using `skip`/`take` plus a parallel `prisma.item.count`.
