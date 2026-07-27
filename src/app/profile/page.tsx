@@ -4,8 +4,6 @@ import { getUserProfile } from "@/server/db/user";
 import { getUserStats } from "@/server/db/stats";
 import { UserAvatar } from "@/components/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChangePasswordSection } from "@/components/profile/change-password-section";
-import { DeleteAccountButton } from "@/components/profile/delete-account-button";
 import DashboardLayout from "../dashboard/layout";
 import * as Icons from "lucide-react";
 
@@ -78,18 +76,6 @@ export default async function ProfilePage() {
               </div>
             </CardContent>
           </Card>
-          
-          {user.hasPassword && (
-            <ChangePasswordSection />
-          )}
-
-          <div className="rounded-xl border bg-card p-6 border-destructive/20">
-            <h3 className="text-lg font-semibold mb-2">Delete Account</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Permanently delete your account and all your stashed data. This action cannot be undone.
-            </p>
-            <DeleteAccountButton />
-          </div>
         </div>
       </div>
     </DashboardLayout>
