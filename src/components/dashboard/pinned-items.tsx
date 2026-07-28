@@ -101,7 +101,7 @@ export function PinnedItems({ items }: PinnedItemsProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-sm font-bold">{item.title}</CardTitle>
-                        {item.isFavorite && <Star className="h-3 w-3 fill-rose-500 text-rose-500" />}
+                        {item.isFavorite && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />}
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
                         {item.description}

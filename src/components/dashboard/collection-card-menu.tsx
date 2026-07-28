@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,8 +23,26 @@ interface CollectionCardMenuProps {
 }
 
 export function CollectionCardMenu({ collectionId, name, description, isFavorite }: CollectionCardMenuProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [favorite, setFavorite] = useState(Boolean(isFavorite));
+
+  async function handleToggleFavorite() {
+    const previous = favorite;
+    setFavorite(!previous);
+
+    const response = await fetch(`/api/collections/${collectionId}/favorite`, { method: "PATCH" });
+    const result = await response.json();
+
+    if (!result.success) {
+      setFavorite(previous);
+      toast.error(result.error ?? "Failed to update favorite.");
+      return;
+    }
+
+    router.refresh();
+  }
 
   // The trigger button is a real DOM descendant of the card's Link, so a plain
   // click bubbles natively to it and would navigate — block both the synthetic
@@ -64,9 +84,9 @@ export function CollectionCardMenu({ collectionId, name, description, isFavorite
               <Pencil className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              <Star className={isFavorite ? "h-4 w-4 fill-current" : "h-4 w-4"} />
-              Favorite
+            <DropdownMenuItem onSelect={handleToggleFavorite} className="cursor-pointer">
+              <Star className={favorite ? "h-4 w-4 fill-current" : "h-4 w-4"} />
+              {favorite ? "Unfavorite" : "Favorite"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

@@ -1,12 +1,21 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { ChevronRight, Clock, Check, Copy, Star, MoreVertical, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ChevronRight, Clock, Check, Copy, Star, Pin, MoreVertical, Plus } from "lucide-react";
 import { getIcon } from "@/server/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/server/utils";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import { toggleItemFavorite, toggleItemPin } from "@/actions/items";
 
 interface RecentItem {
   id: string;
@@ -26,6 +35,7 @@ interface RecentItem {
   }[];
   tags: string[];
   isFavorite: boolean;
+  isPinned: boolean;
   createdAt: Date;
 }
 
@@ -35,6 +45,7 @@ interface RecentItemsProps {
 
 export function RecentItems({ items }: RecentItemsProps) {
   const { openItem } = useItemDrawer();
+  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   async function handleCopy(e: MouseEvent, id: string, value: string) {
@@ -42,6 +53,24 @@ export function RecentItems({ items }: RecentItemsProps) {
     await navigator.clipboard.writeText(value);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
+  }
+
+  async function handleToggleFavorite(id: string) {
+    const result = await toggleItemFavorite(id);
+    if (!result.success) {
+      toast.error(result.error ?? "Failed to update favorite.");
+      return;
+    }
+    router.refresh();
+  }
+
+  async function handleTogglePin(id: string) {
+    const result = await toggleItemPin(id);
+    if (!result.success) {
+      toast.error(result.error ?? "Failed to update pin.");
+      return;
+    }
+    router.refresh();
   }
 
   return (
@@ -112,7 +141,7 @@ export function RecentItems({ items }: RecentItemsProps) {
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm truncate">{item.title}</span>
                           {item.isFavorite && (
-                            <Star className="h-3 w-3 fill-rose-500 text-rose-500 shrink-0" />
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 shrink-0" />
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground truncate md:hidden">
@@ -169,14 +198,28 @@ export function RecentItems({ items }: RecentItemsProps) {
                           {copiedId === item.id ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                      </Button>
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onSelect={() => handleToggleFavorite(item.id)} className="cursor-pointer">
+                            <Star className={item.isFavorite ? "h-4 w-4 fill-current" : "h-4 w-4"} />
+                            {item.isFavorite ? "Unfavorite" : "Favorite"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleTogglePin(item.id)} className="cursor-pointer">
+                            <Pin className={item.isPinned ? "h-4 w-4 fill-current" : "h-4 w-4"} />
+                            {item.isPinned ? "Unpin" : "Pin"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 );

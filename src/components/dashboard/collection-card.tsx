@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Folder } from "lucide-react";
+import { Folder, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getIcon } from "@/server/icons";
 import { CollectionCardMenu } from "@/components/dashboard/collection-card-menu";
@@ -66,7 +66,10 @@ export function CollectionCard({ id, name, description, itemCount, types, isFavo
               <Folder className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-base truncate">{name}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base truncate">{name}</CardTitle>
+                {isFavorite && <Star className="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />}
+              </div>
               <p
                 className="text-xs text-muted-foreground line-clamp-1"
                 title={description || ""}
