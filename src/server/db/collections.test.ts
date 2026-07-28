@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection, getAllCollectionsWithStats, getAllCollectionsForSearch, getCollectionWithItems, updateCollection, deleteCollection } from './collections';
+import { createCollection, getAllCollectionsWithStats, getAllCollectionsForSearch, getFavoriteCollections, getCollectionWithItems, updateCollection, deleteCollection } from './collections';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => ({
@@ -102,6 +102,49 @@ describe('Collections DB Utilities', () => {
     it('should return an empty array for guest users without querying the database', async () => {
       const result = await getAllCollectionsWithStats('guest-id');
       expect(result).toEqual({ collections: [], totalCount: 0 });
+      expect(prisma.collection.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getFavoriteCollections', () => {
+    it('should return favorited collections with type breakdown, sorted by most recently updated', async () => {
+      const updatedAt = new Date();
+      (prisma.collection.findMany as any).mockResolvedValue([
+        {
+          id: 'col-1',
+          name: 'React Patterns',
+          description: null,
+          isFavorite: true,
+          updatedAt,
+          _count: { items: 2 },
+          items: [
+            { item: { type: { id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6' } } },
+            { item: { type: { id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6' } } },
+          ],
+        },
+      ]);
+
+      const result = await getFavoriteCollections('user-123');
+
+      expect(prisma.collection.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { userId: 'user-123', isFavorite: true },
+        orderBy: { updatedAt: 'desc' },
+      }));
+      expect(result).toEqual([{
+        id: 'col-1',
+        name: 'React Patterns',
+        description: null,
+        isFavorite: true,
+        itemCount: 2,
+        types: [{ id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6', count: 2 }],
+        primaryColor: '#3b82f6',
+        updatedAt,
+      }]);
+    });
+
+    it('should return an empty array for guest users without querying the database', async () => {
+      const result = await getFavoriteCollections('guest-id');
+      expect(result).toEqual([]);
       expect(prisma.collection.findMany).not.toHaveBeenCalled();
     });
   });

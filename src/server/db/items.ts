@@ -42,6 +42,28 @@ export const getPinnedItems = cache(async (userId: string, limit = 4) => {
   }));
 });
 
+export const getFavoriteItems = cache(async (userId: string) => {
+  if (userId === "guest-id") return [];
+
+  const items = await prisma.item.findMany({
+    where: { userId, isFavorite: true },
+    orderBy: { updatedAt: 'desc' },
+    include: { type: true }
+  });
+
+  return items.map(item => ({
+    id: item.id,
+    title: item.title,
+    type: {
+      id: item.type.id,
+      name: item.type.name,
+      icon: item.type.icon,
+      color: item.type.color
+    },
+    updatedAt: item.updatedAt
+  }));
+});
+
 export const getItemTypes = cache(async (userId: string) => {
   const isGuest = userId === "guest-id";
 

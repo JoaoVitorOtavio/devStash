@@ -84,6 +84,18 @@ export const getRecentCollections = cache(async (userId: string, limit = 4) => {
   return collections.map(mapCollectionWithStats);
 });
 
+export const getFavoriteCollections = cache(async (userId: string) => {
+  if (userId === "guest-id") return [];
+
+  const collections = await prisma.collection.findMany({
+    where: { userId, isFavorite: true },
+    orderBy: { updatedAt: 'desc' },
+    include: collectionStatsInclude
+  });
+
+  return collections.map(mapCollectionWithStats);
+});
+
 export const getAllCollectionsForSearch = cache(async (userId: string) => {
   if (userId === "guest-id") return [];
 

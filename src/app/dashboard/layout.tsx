@@ -1,9 +1,12 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { Star } from "lucide-react";
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { LoginToast } from "@/components/auth/login-toast";
@@ -60,6 +63,11 @@ export default async function DashboardLayout({
                     <SearchTrigger />
                   </div>
                   <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" asChild aria-label="Favorites">
+                      <Link href="/favorites">
+                        <Star className="h-4 w-4" />
+                      </Link>
+                    </Button>
                     <CollectionCreateButton />
                     <ItemCreateButton collections={collections} />
                   </div>

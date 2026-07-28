@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem, getAllItemsForSearch } from './items';
+import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem, getAllItemsForSearch, getFavoriteItems } from './items';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => {
@@ -112,6 +112,39 @@ describe('Items DB Utilities', () => {
 
     it('should return an empty array for guest users without querying the database', async () => {
       const result = await getAllItemsForSearch('guest-id');
+      expect(result).toEqual([]);
+      expect(prisma.item.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getFavoriteItems', () => {
+    it('should return favorited items sorted by most recently updated', async () => {
+      const updatedAt = new Date();
+      (prisma.item.findMany as any).mockResolvedValue([
+        {
+          id: 'item-1',
+          title: 'Debounce Hook',
+          updatedAt,
+          type: { id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6' },
+        },
+      ]);
+
+      const result = await getFavoriteItems('user-123');
+
+      expect(prisma.item.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { userId: 'user-123', isFavorite: true },
+        orderBy: { updatedAt: 'desc' },
+      }));
+      expect(result).toEqual([{
+        id: 'item-1',
+        title: 'Debounce Hook',
+        type: { id: 'type-1', name: 'Snippet', icon: 'Code', color: '#3b82f6' },
+        updatedAt,
+      }]);
+    });
+
+    it('should return an empty array for guest users without querying the database', async () => {
+      const result = await getFavoriteItems('guest-id');
       expect(result).toEqual([]);
       expect(prisma.item.findMany).not.toHaveBeenCalled();
     });
