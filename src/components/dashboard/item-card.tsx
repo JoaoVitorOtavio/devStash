@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { Check, Copy } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Check, Copy, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/server/utils"; // Assuming cn is available in utils
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import { toggleItemFavorite } from "@/actions/items";
 
 interface ItemCardProps {
   item: {
@@ -27,10 +30,12 @@ interface ItemCardProps {
 
 export function ItemCard({ item }: ItemCardProps) {
   const { openItem } = useItemDrawer();
+  const router = useRouter();
   const accentColor = item.type.color || 'var(--border)';
   const gradient = `linear-gradient(to bottom, ${accentColor}, ${accentColor}aa)`;
   const copyValue = item.content || item.url;
   const [copied, setCopied] = useState(false);
+  const [favorite, setFavorite] = useState(item.isFavorite);
 
   async function handleCopy(e: MouseEvent) {
     e.stopPropagation();
@@ -38,6 +43,22 @@ export function ItemCard({ item }: ItemCardProps) {
     await navigator.clipboard.writeText(copyValue);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  async function handleToggleFavorite(e: MouseEvent) {
+    e.stopPropagation();
+    const previous = favorite;
+    setFavorite(!previous);
+
+    const result = await toggleItemFavorite(item.id);
+
+    if (!result.success) {
+      setFavorite(previous);
+      toast.error(result.error ?? "Failed to update favorite.");
+      return;
+    }
+
+    router.refresh();
   }
 
   return (
@@ -72,6 +93,18 @@ export function ItemCard({ item }: ItemCardProps) {
              {item.isPinned && (
                <Badge variant="secondary" className="h-5 px-1 text-[10px]">Pinned</Badge>
              )}
+             <Button
+               variant="ghost"
+               size="icon"
+               className={cn(
+                 "h-6 w-6 transition-opacity",
+                 favorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+               )}
+               onClick={handleToggleFavorite}
+               aria-label="Toggle favorite"
+             >
+               <Star className={cn("h-3.5 w-3.5", favorite && "fill-yellow-400 text-yellow-400")} />
+             </Button>
              {copyValue && (
                <Button
                  variant="ghost"

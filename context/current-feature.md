@@ -8,6 +8,17 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-28: Completed Favorite Toggle Buttons:
+  - Added `toggleCollectionFavorite(userId, id)` query in `src/server/db/collections.ts` (ownership-checked via `findUnique`, flips `isFavorite`), mirroring the existing `updateCollection`/`deleteCollection` pattern.
+  - Added `PATCH /api/collections/[id]/favorite` route (`src/app/api/collections/[id]/favorite/route.ts`) — follows the collections convention of API routes over server actions, auth + 404-if-not-owned + `{ success, data, error }`.
+  - Wired that route into `CollectionCardMenu`'s dropdown "Favorite" item (used by `CollectionCard` on `/collections` and dashboard `RecentCollections`) and `CollectionDetailActions`'s star button (`/collections/[id]`): both do an optimistic local-state flip, revert + toast on failure, `router.refresh()` on success.
+  - Added a favorite toggle `Star` button to `ItemCard` (item grid cards on `/items/[type]`, dashboard `RecentItems`/`PinnedItems`), which previously had no favorite affordance — calls the existing `toggleItemFavorite` server action with the same optimistic pattern.
+  - Added a yellow `Star` badge to `CollectionCard` next to the name when `isFavorite`, matching the existing favorite-star treatment on item cards.
+  - Fixed two bugs found during manual verification, reported by the user:
+    - `RecentItems`' 3-dot `MoreVertical` button on the dashboard was a dead stub (`stopPropagation` only, no menu attached) — wired it into a real `DropdownMenu` with Favorite/Pin items, calling `toggleItemFavorite`/`toggleItemPin` and `router.refresh()`.
+    - The favorite star used inconsistent colors across the app (`fill-rose-500`/`text-rose-500` in `PinnedItems`/`RecentItems` vs. `fill-yellow-400`/`text-yellow-400` in `ItemCard`/`ItemDrawer`) — standardized on yellow everywhere, including the new `CollectionCard` star.
+  - Unit test coverage for `toggleCollectionFavorite` (flip for owner, null for non-owner) and the new route's `PATCH` handler (401, 404, success), 95 tests passing.
+  - `npm run build` clean after each change.
 - 2026-07-27: Completed Favorites Page:
   - Added `getFavoriteItems(userId)` (`src/server/db/items.ts`) and `getFavoriteCollections(userId)` (`src/server/db/collections.ts`): both filter on `isFavorite: true`, sorted by `updatedAt desc`. `getFavoriteCollections` reuses the existing `collectionStatsInclude`/`mapCollectionWithStats` helpers so each favorited collection carries its per-type color breakdown, needed for the gradient border described below.
   - Added `src/app/favorites/page.tsx`: protected route (same auth-check-and-redirect pattern as `/profile`/`/settings`), fetches both queries in parallel and renders `FavoritesList`.

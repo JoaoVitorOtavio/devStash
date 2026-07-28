@@ -262,3 +262,15 @@ export async function deleteCollection(userId: string, id: string) {
 
   return true;
 }
+
+export async function toggleCollectionFavorite(userId: string, id: string) {
+  const existing = await prisma.collection.findUnique({ where: { id, userId } });
+  if (!existing) return null;
+
+  const collection = await prisma.collection.update({
+    where: { id },
+    data: { isFavorite: !existing.isFavorite },
+  });
+
+  return { isFavorite: collection.isFavorite };
+}

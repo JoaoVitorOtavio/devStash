@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection, getAllCollectionsWithStats, getAllCollectionsForSearch, getFavoriteCollections, getCollectionWithItems, updateCollection, deleteCollection } from './collections';
+import { createCollection, getAllCollectionsWithStats, getAllCollectionsForSearch, getFavoriteCollections, getCollectionWithItems, updateCollection, deleteCollection, toggleCollectionFavorite } from './collections';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => ({
@@ -303,6 +303,31 @@ describe('Collections DB Utilities', () => {
 
       expect(result).toBe(false);
       expect(prisma.collection.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('toggleCollectionFavorite', () => {
+    it('should flip isFavorite for the owning user', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue({ id: 'col-1', userId: 'user-123', isFavorite: false });
+      (prisma.collection.update as any).mockResolvedValue({ id: 'col-1', isFavorite: true });
+
+      const result = await toggleCollectionFavorite('user-123', 'col-1');
+
+      expect(prisma.collection.findUnique).toHaveBeenCalledWith({ where: { id: 'col-1', userId: 'user-123' } });
+      expect(prisma.collection.update).toHaveBeenCalledWith({
+        where: { id: 'col-1' },
+        data: { isFavorite: true },
+      });
+      expect(result).toEqual({ isFavorite: true });
+    });
+
+    it('should return null when the collection is not owned by the user', async () => {
+      (prisma.collection.findUnique as any).mockResolvedValue(null);
+
+      const result = await toggleCollectionFavorite('user-123', 'missing-id');
+
+      expect(result).toBeNull();
+      expect(prisma.collection.update).not.toHaveBeenCalled();
     });
   });
 });
