@@ -3,13 +3,13 @@
 import { useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, Copy, Star } from "lucide-react";
+import { Check, Copy, Pin, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/server/utils"; // Assuming cn is available in utils
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
-import { toggleItemFavorite } from "@/actions/items";
+import { toggleItemFavorite, toggleItemPin } from "@/actions/items";
 
 interface ItemCardProps {
   item: {
@@ -36,6 +36,7 @@ export function ItemCard({ item }: ItemCardProps) {
   const copyValue = item.content || item.url;
   const [copied, setCopied] = useState(false);
   const [favorite, setFavorite] = useState(item.isFavorite);
+  const [pinned, setPinned] = useState(item.isPinned);
 
   async function handleCopy(e: MouseEvent) {
     e.stopPropagation();
@@ -55,6 +56,22 @@ export function ItemCard({ item }: ItemCardProps) {
     if (!result.success) {
       setFavorite(previous);
       toast.error(result.error ?? "Failed to update favorite.");
+      return;
+    }
+
+    router.refresh();
+  }
+
+  async function handleTogglePin(e: MouseEvent) {
+    e.stopPropagation();
+    const previous = pinned;
+    setPinned(!previous);
+
+    const result = await toggleItemPin(item.id);
+
+    if (!result.success) {
+      setPinned(previous);
+      toast.error(result.error ?? "Failed to update pin.");
       return;
     }
 
@@ -90,9 +107,18 @@ export function ItemCard({ item }: ItemCardProps) {
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold leading-none tracking-tight">{item.title}</h3>
           <div className="flex items-center gap-1">
-             {item.isPinned && (
-               <Badge variant="secondary" className="h-5 px-1 text-[10px]">Pinned</Badge>
-             )}
+             <Button
+               variant="ghost"
+               size="icon"
+               className={cn(
+                 "h-6 w-6 transition-opacity",
+                 pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+               )}
+               onClick={handleTogglePin}
+               aria-label="Toggle pin"
+             >
+               <Pin className={cn("h-3.5 w-3.5", pinned && "fill-amber-500 text-amber-500")} />
+             </Button>
              <Button
                variant="ghost"
                size="icon"

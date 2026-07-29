@@ -8,6 +8,12 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-28: Completed Pinned Items:
+  - Added pinned-first sorting to `getItemsByType` and `getRecentItems` (`src/server/db/items.ts`): `orderBy: [{ isPinned: 'desc' }, { updatedAt/createdAt: 'desc' }]`, so pinned items surface at the top of `/items/[type]` and the dashboard's `RecentItems`. (`getPinnedItems`, used by the dedicated Pinned Items widget, was already filtered to `isPinned: true` and needed no change.)
+  - Most of the original spec (`context/features/pinned-spec.md`) was already implemented in a prior feature (Item Drawer, 2026-07-11): `toggleItemPin` server action, and the `ItemDrawer` Pin button already wired to it with optimistic updates + toast — confirmed both still work, no changes needed.
+  - Scope expanded per explicit user request mid-implementation: replaced `ItemCard`'s static "Pinned" `Badge` with a clickable Pin toggle button (`src/components/dashboard/item-card.tsx`), mirroring the existing Favorite button's optimistic-update pattern (local state flip, `toggleItemPin` call, revert + toast on failure, `router.refresh()` on success) — lets users pin/unpin directly from `/items/[type]` grid cards without opening the drawer. This overrides the original spec's "Pin icon on ItemCard remains static indicator" note.
+  - Unit test coverage: `orderBy` assertions for both `getItemsByType` and the newly-tested `getRecentItems` (previously untested — added guest-fallback coverage too), 98 tests passing.
+  - `npm run build` clean.
 - 2026-07-28: Completed Favorite Toggle Buttons:
   - Added `toggleCollectionFavorite(userId, id)` query in `src/server/db/collections.ts` (ownership-checked via `findUnique`, flips `isFavorite`), mirroring the existing `updateCollection`/`deleteCollection` pattern.
   - Added `PATCH /api/collections/[id]/favorite` route (`src/app/api/collections/[id]/favorite/route.ts`) — follows the collections convention of API routes over server actions, auth + 404-if-not-owned + `{ success, data, error }`.

@@ -101,7 +101,7 @@ export const getRecentItems = cache(async (userId: string, limit = 10) => {
   const items = await prisma.item.findMany({
     where: { userId },
     take: limit,
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
     include: {
       type: true,
       collections: {
@@ -381,7 +381,7 @@ export const getItemsByType = cache(async (userId: string, typeName: string, pag
       where,
       skip: (page - 1) * ITEMS_PER_PAGE,
       take: ITEMS_PER_PAGE,
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ isPinned: 'desc' }, { updatedAt: 'desc' }],
       include: {
         type: true,
         tags: {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem, getAllItemsForSearch, getFavoriteItems } from './items';
+import { getItemsByType, getItemTypes, getItemById, updateItem, deleteItem, createItem, getAllItemsForSearch, getFavoriteItems, getRecentItems } from './items';
 import { prisma } from '@/server/prisma';
 
 vi.mock('@/server/prisma', () => {
@@ -150,6 +150,24 @@ describe('Items DB Utilities', () => {
     });
   });
 
+  describe('getRecentItems', () => {
+    it('should sort pinned items before recently created ones', async () => {
+      (prisma.item.findMany as any).mockResolvedValue([]);
+
+      await getRecentItems('user-123');
+
+      expect(prisma.item.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+      }));
+    });
+
+    it('should return an empty array for guest users without querying the database', async () => {
+      const result = await getRecentItems('guest-id');
+      expect(result).toEqual([]);
+      expect(prisma.item.findMany).not.toHaveBeenCalled();
+    });
+  });
+
   describe('getItemsByType', () => {
     it('should return items of the specified type for a user', async () => {
       const mockItems = [
@@ -185,6 +203,17 @@ describe('Items DB Utilities', () => {
       expect(prisma.item.findMany).toHaveBeenCalledWith(expect.objectContaining({
         skip: 42,
         take: 21,
+      }));
+    });
+
+    it('should sort pinned items before recently updated ones', async () => {
+      (prisma.item.findMany as any).mockResolvedValue([]);
+      (prisma.item.count as any).mockResolvedValue(0);
+
+      await getItemsByType('user-123', 'Snippet');
+
+      expect(prisma.item.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        orderBy: [{ isPinned: 'desc' }, { updatedAt: 'desc' }],
       }));
     });
 
