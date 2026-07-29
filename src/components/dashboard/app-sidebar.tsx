@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import {
   ChevronRight,
+  Code,
   MoreHorizontal,
   Plus,
   Star,
@@ -19,7 +20,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { getIcon } from "@/server/icons";
 import { UserAvatar } from "@/components/user-avatar";
 import { logout } from "@/actions/auth";
+import { SidebarCollectionMenu } from "@/components/dashboard/sidebar-collection-menu";
 
 interface ItemType {
   id: string;
@@ -56,6 +57,7 @@ interface ItemType {
 interface Collection {
   id: string;
   name: string;
+  description?: string | null;
   isFavorite: boolean;
   primaryColor?: string;
   types?: Array<{ id: string; count: number; color?: string; icon?: string; name?: string }>;
@@ -102,8 +104,8 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton size="lg" asChild tooltip="DevStash">
               <Link href="/dashboard" className="flex-1">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <span className="font-bold">D</span>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Code className="h-4 w-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">DevStash</span>
@@ -198,26 +200,11 @@ export function AppSidebar({ itemTypes, collections, recentCollections, user, ..
                       <span className="truncate group-data-[collapsible=icon]:hidden">{collection.name}</span>
                     </Link>
                   </SidebarMenuButton>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontal />
-                        <span className="sr-only">More</span>
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="right" align="start">
-                      <DropdownMenuItem>
-                        <span>Edit Collection</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <span>Share</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <SidebarCollectionMenu
+                    collectionId={collection.id}
+                    name={collection.name}
+                    description={collection.description ?? null}
+                  />
                 </SidebarMenuItem>
               ))}
               {recent.length === 0 && (

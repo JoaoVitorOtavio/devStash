@@ -125,7 +125,7 @@ export function PinnedItems({ items }: PinnedItemsProps) {
                         size="icon"
                         className={cn(
                           "h-8 w-8 transition-opacity",
-                          copiedId === item.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          copiedId === item.id ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         )}
                         onClick={(e) => handleCopy(e, item.id, copyValue)}
                         aria-label="Copy content"

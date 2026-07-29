@@ -112,7 +112,7 @@ export function ItemCard({ item }: ItemCardProps) {
                size="icon"
                className={cn(
                  "h-6 w-6 transition-opacity",
-                 pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                 pinned ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
                )}
                onClick={handleTogglePin}
                aria-label="Toggle pin"
@@ -124,7 +124,7 @@ export function ItemCard({ item }: ItemCardProps) {
                size="icon"
                className={cn(
                  "h-6 w-6 transition-opacity",
-                 favorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                 favorite ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
                )}
                onClick={handleToggleFavorite}
                aria-label="Toggle favorite"
@@ -137,7 +137,7 @@ export function ItemCard({ item }: ItemCardProps) {
                  size="icon"
                  className={cn(
                    "h-6 w-6 transition-opacity",
-                   copied ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                   copied ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
                  )}
                  onClick={handleCopy}
                  aria-label="Copy content"

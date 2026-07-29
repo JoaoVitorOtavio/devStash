@@ -1,11 +1,19 @@
-# Current Feature
+# Current Feature: Nav Consistency & UI Review Fixes
 
 ## Status
-Not Started
+In Progress
 
 ## Goals
+- Add the homepage top `Navbar` (or equivalent nav bar) to `/sign-in` and `/register` pages, so the marketing nav is present across all public/auth pages.
+- Fix homepage `Navbar` mobile nav: currently `md:flex` hides the Features/Pricing links below 768px with zero fallback (`src/components/homepage/navbar.tsx:38`). Add a hamburger/drawer (or similar) so those links remain reachable on mobile. This applies wherever the navbar is now reused (auth pages too).
+- Dashboard sidebar logo (`src/components/dashboard/app-sidebar.tsx:103-113`): delete the "D" square box logo, replace with the same icon-in-rounded-box treatment the homepage navbar uses for its logo (`Code` icon from lucide-react, `rounded-md bg-primary/10 px-1.5 py-0.5 text-primary` wrapper — `src/components/homepage/navbar.tsx:32-34`), so both navs are visually consistent.
+- Fix High severity finding from UI review: `ItemCard` (and same pattern in `recent-items.tsx`, `pinned-items.tsx`, `favorites-list.tsx`, `collection-card.tsx`) hides Pin/Favorite/Copy action buttons via `opacity-0 group-hover:opacity-100` with no touch fallback — on mobile/touch, non-active items have zero visible affordance. Add a touch-accessible fallback (e.g. always-visible on small viewports, or `focus-within`/active-state handling) so these actions are reachable without hover.
+- Fix Medium severity finding from UI review: sidebar "Recent" collections dropdown (`src/components/dashboard/app-sidebar.tsx:208-219`) — Edit Collection/Share/Delete menu items have no handlers, clicking does nothing. Wire Edit/Delete to the existing `CollectionEditDialog`/`CollectionDeleteDialog` (same ones `CollectionCardMenu` already uses). Share has no existing backend/spec — confirm with user before implementing new functionality for it, or drop it from the menu if out of scope.
 
 ## Notes
+- Source: UI review conducted via Playwright MCP against homepage (`/`) and dashboard (`/dashboard`, `/items/[type]`) at 1440px and 390px, logged in as demo@devstash.io.
+- Full findings list included two Low severity items (toast overlapping search bar on dashboard load; dead "Account" dropdown item) — explicitly NOT in scope for this feature per user's request (only High/Medium).
+- Do not restyle the whole dashboard nav — scope is limited to the logo swap described above.
 
 ## History
 - 2026-07-29: Completed Homepage:

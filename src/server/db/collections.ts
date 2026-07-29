@@ -199,6 +199,7 @@ export const getAllCollections = cache(async (userId: string) => {
   return collections.map(collection => ({
     id: collection.id,
     name: collection.name,
+    description: collection.description,
     isFavorite: collection.isFavorite,
     updatedAt: collection.updatedAt
   }));
