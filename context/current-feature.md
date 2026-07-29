@@ -8,6 +8,18 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-29: Completed DevStash Homepage Mockup:
+  - Added `prototypes/homepage/` (`index.html`, `styles.css`, `script.js`) — standalone static marketing prototype, no framework/build step, outside the Next.js app.
+  - Nav (fixed, opacity increases on scroll via a `.scrolled` class toggle), hero with gradient-text headline and "chaos to order" visual (chaos icon box, pulsing arrow, dashboard mockup), 6-card features grid, two-column AI section with an animated code/tags demo, pricing with a monthly/yearly toggle, closing CTA, and footer — all per `context/features/homepage-mockup-spec.md`.
+  - Chaos icons (Notion, GitHub, Slack, VS Code, browser tabs, terminal, text file, bookmark) rendered as inline SVGs, animated via `requestAnimationFrame`: constant-velocity drift, wall bounce, rotation/scale pulse, mouse-repel.
+  - Scroll reveal via `IntersectionObserver` on `.reveal` elements; pricing toggle swaps `data-monthly`/`data-yearly` values on the Pro card.
+  - Verified end-to-end in the browser via Playwright MCP (served locally with `npx serve`, since `file://` navigation is blocked): confirmed all sections reveal correctly on real scroll, pricing toggle switches $8/mo ↔ $72/yr, mobile viewport (390px) stacks chaos/arrow/dashboard vertically, no console errors besides an irrelevant favicon 404.
+  - Found and fixed two real bugs during that verification:
+    - Chaos icons were clumping together and going nearly static within ~1s of load: the animation applied constant velocity damping (`vx *= 0.98`) every frame regardless of mouse proximity, so each icon's initial drift decayed to ~0 almost immediately. Rewrote so drift velocity never decays (constant speed, reflected on wall bounce) and mouse-repel is applied as a one-off per-frame positional nudge instead of a permanent velocity addition — icons now float continuously and don't speed up unboundedly on repeated hovers. Also fixed initial spawn to spread across the full box instead of a cramped 200×200 corner.
+    - The transform arrow didn't actually rotate 90° on mobile despite the media-query rule: its `pulse-arrow` keyframe animation set `transform: scale(...)` every frame, continuously overwriting the static `transform: rotate(90deg)` from the mobile rule. Fixed by driving the rotation through a `--arrow-rotate` CSS custom property consumed inside the keyframes (`rotate(var(--arrow-rotate)) scale(...)`), so the mobile media query only needs to override the variable.
+  - `npm test` (98 tests) still passes unchanged — this feature touched no code inside the Next.js app.
+
+
 - 2026-07-28: Completed Pinned Items:
   - Added pinned-first sorting to `getItemsByType` and `getRecentItems` (`src/server/db/items.ts`): `orderBy: [{ isPinned: 'desc' }, { updatedAt/createdAt: 'desc' }]`, so pinned items surface at the top of `/items/[type]` and the dashboard's `RecentItems`. (`getPinnedItems`, used by the dedicated Pinned Items widget, was already filtered to `isPinned: true` and needed no change.)
   - Most of the original spec (`context/features/pinned-spec.md`) was already implemented in a prior feature (Item Drawer, 2026-07-11): `toggleItemPin` server action, and the `ItemDrawer` Pin button already wired to it with optimistic updates + toast — confirmed both still work, no changes needed.
