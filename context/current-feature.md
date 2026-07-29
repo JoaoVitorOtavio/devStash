@@ -1,21 +1,22 @@
-# Current Feature: Nav Consistency & UI Review Fixes
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Add the homepage top `Navbar` (or equivalent nav bar) to `/sign-in` and `/register` pages, so the marketing nav is present across all public/auth pages.
-- Fix homepage `Navbar` mobile nav: currently `md:flex` hides the Features/Pricing links below 768px with zero fallback (`src/components/homepage/navbar.tsx:38`). Add a hamburger/drawer (or similar) so those links remain reachable on mobile. This applies wherever the navbar is now reused (auth pages too).
-- Dashboard sidebar logo (`src/components/dashboard/app-sidebar.tsx:103-113`): delete the "D" square box logo, replace with the same icon-in-rounded-box treatment the homepage navbar uses for its logo (`Code` icon from lucide-react, `rounded-md bg-primary/10 px-1.5 py-0.5 text-primary` wrapper — `src/components/homepage/navbar.tsx:32-34`), so both navs are visually consistent.
-- Fix High severity finding from UI review: `ItemCard` (and same pattern in `recent-items.tsx`, `pinned-items.tsx`, `favorites-list.tsx`, `collection-card.tsx`) hides Pin/Favorite/Copy action buttons via `opacity-0 group-hover:opacity-100` with no touch fallback — on mobile/touch, non-active items have zero visible affordance. Add a touch-accessible fallback (e.g. always-visible on small viewports, or `focus-within`/active-state handling) so these actions are reachable without hover.
-- Fix Medium severity finding from UI review: sidebar "Recent" collections dropdown (`src/components/dashboard/app-sidebar.tsx:208-219`) — Edit Collection/Share/Delete menu items have no handlers, clicking does nothing. Wire Edit/Delete to the existing `CollectionEditDialog`/`CollectionDeleteDialog` (same ones `CollectionCardMenu` already uses). Share has no existing backend/spec — confirm with user before implementing new functionality for it, or drop it from the menu if out of scope.
 
 ## Notes
-- Source: UI review conducted via Playwright MCP against homepage (`/`) and dashboard (`/dashboard`, `/items/[type]`) at 1440px and 390px, logged in as demo@devstash.io.
-- Full findings list included two Low severity items (toast overlapping search bar on dashboard load; dead "Account" dropdown item) — explicitly NOT in scope for this feature per user's request (only High/Medium).
-- Do not restyle the whole dashboard nav — scope is limited to the logo swap described above.
 
 ## History
+- 2026-07-29: Completed Nav Consistency & UI Review Fixes:
+  - Added the homepage `Navbar` to `/sign-in` and `/register` (`src/app/sign-in/page.tsx`, `src/app/register/page.tsx`), with `pt-24` on the centering wrapper so the fixed nav doesn't overlap the auth card.
+  - Added a mobile hamburger menu to `Navbar` (`src/components/homepage/navbar.tsx`) using the shadcn `Sheet`: Features/Pricing links, previously hidden below 768px with zero fallback, are now reachable via a `md:hidden` trigger button; each link is wrapped in `SheetClose asChild` so tapping it closes the sheet and lets the anchor scroll happen.
+  - Swapped the dashboard sidebar's "D" square logo box for the same `Code`-icon-in-`rounded-md bg-primary/10` treatment the homepage navbar uses (`src/components/dashboard/app-sidebar.tsx`), for visual consistency between the two navs.
+  - Fixed the UI review's High severity finding: `ItemCard`, `RecentItems`, and `PinnedItems` hid their Pin/Favorite/Copy action buttons via `opacity-0 group-hover:opacity-100` with no touch fallback, making them invisible and unreachable on mobile for any item not already pinned/favorited. Changed the pattern to `opacity-100 md:opacity-0 md:group-hover:opacity-100` — visible by default, hover-gated only at `md:` and up — so desktop keeps its hover-reveal look while touch devices always see the actions. (`favorites-list.tsx`/`collection-card.tsx` use the same opacity classes but only for a decorative hover border, not an interactive control, so they were left untouched.)
+  - Fixed the UI review's Medium severity finding: the sidebar's "Recent" collections dropdown (Edit Collection/Share/Delete) had no handlers at all. Added `sidebar-collection-menu.tsx`, wiring Edit/Delete to the existing `CollectionEditDialog`/`CollectionDeleteDialog` (the same ones `CollectionCardMenu` already uses elsewhere). Dropped "Share" from the menu since it had no backend or spec — flagged as out of scope rather than building new functionality ad hoc.
+  - Found and fixed a data-shape gap surfaced by the above: `getAllCollections` (`src/server/db/collections.ts`) never selected `description`, unlike `getRecentCollections`. Since the dashboard sidebar falls back to `getAllCollections` when a user has no recent collections yet, the new Edit dialog would have silently opened with a blank description for that case. Added `description` to the mapped shape.
+  - `npm run build` clean, `npm test` (98 tests) passing unchanged, `npm run lint` shows only pre-existing warnings/errors unrelated to the touched files.
+  - Verified end-to-end in the browser via Playwright MCP at 1440px and 390px: `/sign-in` and `/register` render the nav without overlapping the form; the mobile hamburger opens, and tapping "Features" closes the sheet and scrolls to the real section on the homepage; the dashboard sidebar shows the new `Code` icon logo; `/items/snippet` at 390px shows Pin/Favorite/Copy on every card (not just favorited ones) while the same page at 1440px still hides them until hover; the sidebar's "Edit Collection" now opens a real dialog prefilled with the collection's actual name/description (confirmed against "AI Workflows") instead of doing nothing.
 - 2026-07-29: Completed Homepage:
   - Removed `redirect("/dashboard")` from `src/app/page.tsx`; `/` now renders a real static marketing homepage (`○` prerendered) instead of always bouncing signed-out visitors to `/dashboard`.
   - Rebuilt the `prototypes/homepage/` mockup as `src/components/homepage/*` using Next.js Server Components + Tailwind v4 + shadcn/ui, per `context/features/homepage-spec.md`: `navbar.tsx`, `hero.tsx`, `chaos-visual.tsx`, `features-section.tsx`, `ai-section.tsx`, `pricing-section.tsx`, `pricing-toggle.tsx`, `cta-section.tsx`, `footer.tsx`, `scroll-reveal.tsx`, `item-type-palette.ts`.
