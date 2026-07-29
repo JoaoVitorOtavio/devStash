@@ -93,7 +93,7 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
                 <div
                   key={item.id}
                   onClick={() => openItem(item.id)}
-                  className="group relative flex items-center gap-3 pl-3 pr-3 py-2 rounded-md border border-transparent bg-card cursor-pointer transition-colors overflow-hidden"
+                  className="group relative flex items-center gap-3 pl-3 pr-3 py-2.5 md:py-2 rounded-md border border-transparent bg-card cursor-pointer transition-colors overflow-hidden"
                 >
                   <HoverBorder color={accentColor} />
                   <div
@@ -101,9 +101,9 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
                     style={{ background: accentColor }}
                   />
                   <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: item.type.color || undefined }} />
-                  <span className="flex-1 truncate">{item.title}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">{item.type.name}</span>
-                  <span className="text-xs text-muted-foreground/70 shrink-0 w-24 text-right">
+                  <span className="flex-1 truncate min-w-0">{item.title}</span>
+                  <span className="hidden md:inline shrink-0 text-xs text-muted-foreground">{item.type.name}</span>
+                  <span className="hidden md:inline shrink-0 w-24 text-right text-xs text-muted-foreground/70">
                     {formatDate(item.updatedAt)}
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
                 <Link
                   key={collection.id}
                   href={`/collections/${collection.id}`}
-                  className="group relative flex items-center gap-3 pl-3 pr-3 py-2 rounded-md border border-transparent bg-card cursor-pointer transition-colors overflow-hidden"
+                  className="group relative flex items-center gap-3 pl-3 pr-3 py-2.5 md:py-2 rounded-md border border-transparent bg-card cursor-pointer transition-colors overflow-hidden"
                 >
                   <HoverBorder color={gradient} />
                   <div
@@ -135,11 +135,11 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
                     style={{ background: gradient }}
                   />
                   <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="flex-1 truncate">{collection.name}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">
+                  <span className="flex-1 truncate min-w-0">{collection.name}</span>
+                  <span className="hidden md:inline shrink-0 text-xs text-muted-foreground">
                     {collection.itemCount} item{collection.itemCount === 1 ? "" : "s"}
                   </span>
-                  <span className="text-xs text-muted-foreground/70 shrink-0 w-24 text-right">
+                  <span className="hidden md:inline shrink-0 w-24 text-right text-xs text-muted-foreground/70">
                     {formatDate(collection.updatedAt)}
                   </span>
                 </Link>
