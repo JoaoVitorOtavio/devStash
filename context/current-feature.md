@@ -8,6 +8,13 @@ Not Started
 ## Notes
 
 ## History
+- 2026-07-30: Completed Language Dropdown for Code Editor:
+  - Added `LANGUAGE_OPTIONS` (`src/components/dashboard/code-editor.tsx`): curated list of common languages (JavaScript, TypeScript, Python, Java, C#, C++, C, Go, Rust, Ruby, PHP, Swift, Kotlin, SQL, Shell, PowerShell, YAML, JSON, HTML, CSS, SCSS, Markdown, Dockerfile, GraphQL, Lua, Perl, R, Dart, Plain Text), each with a canonical Monaco language id as its value.
+  - Replaced the free-text Language `Input` with a `Select` dropdown in both `ItemCreateDialog` and `ItemDrawer`'s edit mode, moved above the Content field (was below), and normalized its displayed value through the existing `toMonacoLanguage` alias map so older free-text values (e.g. stored `"js"`) still resolve to the right dropdown option.
+  - No data-shape change: `language` is still persisted as a plain string, just now always one of the dropdown's canonical values going forward. `CodeEditor` already re-renders Monaco's syntax highlighting live off the `language` prop, so switching the dropdown updates highlighting immediately, before or during typing.
+  - `README.md`: added a "Fora de Escopo" section noting image/file uploads and payments (Stripe/Pro) are intentionally not being implemented, since this is a study project and both would require tying to a real credit card.
+  - `npm run build` clean.
+  - Verified end-to-end in the browser via Playwright MCP (logged in as the demo user): in the New Item dialog, confirmed the Language dropdown sits above Content, selecting Python instantly updates the editor's language label and Monaco's syntax highlighting; in the item drawer's edit mode on an existing snippet, confirmed the dropdown pre-populates with the item's stored language (JavaScript) in the same above-Content position. No console errors beyond the known benign dev-mode Monaco "Canceled" promise rejection on unmount (documented in a prior feature).
 - 2026-07-29: Completed Nav Consistency & UI Review Fixes:
   - Added the homepage `Navbar` to `/sign-in` and `/register` (`src/app/sign-in/page.tsx`, `src/app/register/page.tsx`), with `pt-24` on the centering wrapper so the fixed nav doesn't overlap the auth card.
   - Added a mobile hamburger menu to `Navbar` (`src/components/homepage/navbar.tsx`) using the shadcn `Sheet`: Features/Pricing links, previously hidden below 768px with zero fallback, are now reachable via a `md:hidden` trigger button; each link is wrapped in `SheetClose asChild` so tapping it closes the sheet and lets the anchor scroll happen.

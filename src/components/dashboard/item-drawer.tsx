@@ -27,8 +27,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CodeEditor } from "@/components/dashboard/code-editor";
+import { CodeEditor, LANGUAGE_OPTIONS, toMonacoLanguage } from "@/components/dashboard/code-editor";
 import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CollectionMultiSelect } from "@/components/dashboard/collection-multi-select";
 import { getIcon } from "@/server/icons";
 import { cn } from "@/server/utils";
@@ -332,6 +339,27 @@ export function ItemDrawer({ itemId, open, onOpenChange, collections }: ItemDraw
                   />
                 </div>
 
+                {showLanguage && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Language</label>
+                    <Select
+                      value={toMonacoLanguage(form.language)}
+                      onValueChange={(value) => setForm({ ...form, language: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {showContent && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">Content</label>
@@ -355,17 +383,6 @@ export function ItemDrawer({ itemId, open, onOpenChange, collections }: ItemDraw
                         className="font-mono text-xs"
                       />
                     )}
-                  </div>
-                )}
-
-                {showLanguage && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">Language</label>
-                    <Input
-                      value={form.language}
-                      onChange={(e) => setForm({ ...form, language: e.target.value })}
-                      placeholder="e.g. javascript"
-                    />
                   </div>
                 )}
 

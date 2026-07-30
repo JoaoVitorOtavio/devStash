@@ -28,6 +28,10 @@ Prover uma plataforma unificada onde todo o "arsenal" de um desenvolvedor esteja
 4. **Coleções:** Implementar sistema de pastas/agrupamentos.
 5. **Busca:** Implementar busca textual global.
 
+## 🚫 Fora de Escopo
+- **Upload de imagens/arquivos** e **pagamentos (Stripe/Pro)** não serão implementados.
+- Motivo: projeto de estudo — essas features exigiriam vincular cartão de crédito real (Cloudflare R2 pago, Stripe), o que não é o intuito no momento.
+
 ## 🛠️ Como Executar
 
 1. **Instale as dependências:**

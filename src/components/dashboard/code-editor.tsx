@@ -56,6 +56,38 @@ export function toMonacoLanguage(language: string | undefined | null): string {
   return LANGUAGE_ALIASES[normalized] ?? normalized;
 }
 
+export const LANGUAGE_OPTIONS = [
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "csharp", label: "C#" },
+  { value: "cpp", label: "C++" },
+  { value: "c", label: "C" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "ruby", label: "Ruby" },
+  { value: "php", label: "PHP" },
+  { value: "swift", label: "Swift" },
+  { value: "kotlin", label: "Kotlin" },
+  { value: "sql", label: "SQL" },
+  { value: "shell", label: "Shell" },
+  { value: "powershell", label: "PowerShell" },
+  { value: "yaml", label: "YAML" },
+  { value: "json", label: "JSON" },
+  { value: "html", label: "HTML" },
+  { value: "css", label: "CSS" },
+  { value: "scss", label: "SCSS" },
+  { value: "markdown", label: "Markdown" },
+  { value: "dockerfile", label: "Dockerfile" },
+  { value: "graphql", label: "GraphQL" },
+  { value: "lua", label: "Lua" },
+  { value: "perl", label: "Perl" },
+  { value: "r", label: "R" },
+  { value: "dart", label: "Dart" },
+  { value: "plaintext", label: "Plain Text" },
+] as const;
+
 interface CodeEditorProps {
   value: string;
   onChange?: (value: string) => void;
