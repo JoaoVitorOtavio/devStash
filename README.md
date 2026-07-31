@@ -29,8 +29,9 @@ Prover uma plataforma unificada onde todo o "arsenal" de um desenvolvedor esteja
 5. **Busca:** Implementar busca textual global.
 
 ## 🚫 Fora de Escopo
-- **Upload de imagens/arquivos** e **pagamentos (Stripe/Pro)** não serão implementados.
-- Motivo: projeto de estudo — essas features exigiriam vincular cartão de crédito real (Cloudflare R2 pago, Stripe), o que não é o intuito no momento.
+- **Upload de imagens/arquivos**, **pagamentos (Stripe/Pro)** e **sugestão de tags com IA** não serão levados adiante como funcionalidades pagas de produção.
+- Motivo: projeto de estudo — essas features exigiriam vincular cartão de crédito real (Cloudflare R2 pago, Stripe, créditos da API OpenAI), o que não é o intuito no momento.
+- A sugestão de tags com IA (`generateAutoTags`, botão "Suggest Tags") já está implementada no código como prova de conceito, mas depende de uma conta OpenAI com billing configurado para funcionar de fato — sem crédito na API, a chamada falha com `insufficient_quota`.
 
 ## 🛠️ Como Executar
 
