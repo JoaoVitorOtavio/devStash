@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/server/prisma";
+import { requireUserId } from "@/server/auth-utils";
 import { z } from "zod";
 import type { EditorPreferences } from "@/types/editor-preferences";
 
@@ -14,8 +14,8 @@ const editorPreferencesSchema = z.object({
 });
 
 export async function updateEditorPreferences(preferences: EditorPreferences) {
-  const session = await auth();
-  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const { userId, error } = await requireUserId();
+  if (!userId) return { success: false, error };
 
   const parsed = editorPreferencesSchema.safeParse(preferences);
   if (!parsed.success) {
@@ -23,7 +23,7 @@ export async function updateEditorPreferences(preferences: EditorPreferences) {
   }
 
   await prisma.user.update({
-    where: { id: session.user.id },
+    where: { id: userId },
     data: { editorPreferences: parsed.data },
   });
 
