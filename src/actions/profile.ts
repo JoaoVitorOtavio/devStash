@@ -1,14 +1,14 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/server/prisma";
+import { requireUserId } from "@/server/auth-utils";
 import bcrypt from "bcryptjs";
 
 export async function changePassword(prevState: { error?: string; success?: string } | undefined, formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-  
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  const { userId, error: authError } = await requireUserId();
+  if (!userId) return { error: authError };
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user || !user.password) return { error: "Cannot change password for this account." };
 
   const currentPassword = formData.get("currentPassword") as string;
@@ -38,11 +38,11 @@ export async function changePassword(prevState: { error?: string; success?: stri
 }
 
 export async function deleteAccount() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-  
+  const { userId, error } = await requireUserId();
+  if (!userId) return { error };
+
   await prisma.user.delete({
-    where: { id: session.user.id },
+    where: { id: userId },
   });
 
   return { success: "Account deleted successfully." };

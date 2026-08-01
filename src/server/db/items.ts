@@ -1,6 +1,33 @@
 import { prisma } from "@/server/prisma";
 import { cache } from "react";
 import { ITEMS_PER_PAGE } from "@/server/constants";
+import type { Prisma } from "../../generated/prisma/client";
+
+async function getOwnedCollectionIds(userId: string, collectionIds: string[]) {
+  if (collectionIds.length === 0) return [];
+
+  const rows = await prisma.collection.findMany({
+    where: { id: { in: collectionIds }, userId },
+    select: { id: true },
+  });
+
+  return rows.map((row) => row.id);
+}
+
+async function syncItemTags(tx: Prisma.TransactionClient, userId: string, itemId: string, tagNames: string[]) {
+  for (const tagName of tagNames) {
+    const tag = await tx.tag.findFirst({ where: { userId, name: tagName } })
+      ?? await tx.tag.create({ data: { userId, name: tagName } });
+
+    await tx.itemTag.create({ data: { itemId, tagId: tag.id } });
+  }
+}
+
+async function syncItemCollections(tx: Prisma.TransactionClient, itemId: string, collectionIds: string[]) {
+  for (const collectionId of collectionIds) {
+    await tx.itemCollection.create({ data: { itemId, collectionId } });
+  }
+}
 
 export const getPinnedItems = cache(async (userId: string, limit = 4) => {
   if (userId === "guest-id") return [];
@@ -248,12 +275,7 @@ export async function updateItem(userId: string, id: string, data: UpdateItemInp
   const existing = await prisma.item.findUnique({ where: { id, userId } });
   if (!existing) return null;
 
-  const ownedCollections = data.collectionIds.length > 0
-    ? await prisma.collection.findMany({
-        where: { id: { in: data.collectionIds }, userId },
-        select: { id: true },
-      })
-    : [];
+  const ownedCollectionIds = await getOwnedCollectionIds(userId, data.collectionIds);
 
   await prisma.$transaction(async (tx) => {
     await tx.item.update({
@@ -268,19 +290,10 @@ export async function updateItem(userId: string, id: string, data: UpdateItemInp
     });
 
     await tx.itemTag.deleteMany({ where: { itemId: id } });
-
-    for (const tagName of data.tags) {
-      const tag = await tx.tag.findFirst({ where: { userId, name: tagName } })
-        ?? await tx.tag.create({ data: { userId, name: tagName } });
-
-      await tx.itemTag.create({ data: { itemId: id, tagId: tag.id } });
-    }
+    await syncItemTags(tx, userId, id, data.tags);
 
     await tx.itemCollection.deleteMany({ where: { itemId: id } });
-
-    for (const collection of ownedCollections) {
-      await tx.itemCollection.create({ data: { itemId: id, collectionId: collection.id } });
-    }
+    await syncItemCollections(tx, id, ownedCollectionIds);
   });
 
   const updated = await prisma.item.findUnique({
@@ -311,12 +324,7 @@ export async function createItem(userId: string, data: CreateItemInput) {
   });
   if (!type) return null;
 
-  const ownedCollections = data.collectionIds.length > 0
-    ? await prisma.collection.findMany({
-        where: { id: { in: data.collectionIds }, userId },
-        select: { id: true },
-      })
-    : [];
+  const ownedCollectionIds = await getOwnedCollectionIds(userId, data.collectionIds);
 
   const created = await prisma.$transaction(async (tx) => {
     const item = await tx.item.create({
@@ -332,16 +340,8 @@ export async function createItem(userId: string, data: CreateItemInput) {
       },
     });
 
-    for (const tagName of data.tags) {
-      const tag = await tx.tag.findFirst({ where: { userId, name: tagName } })
-        ?? await tx.tag.create({ data: { userId, name: tagName } });
-
-      await tx.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
-    }
-
-    for (const collection of ownedCollections) {
-      await tx.itemCollection.create({ data: { itemId: item.id, collectionId: collection.id } });
-    }
+    await syncItemTags(tx, userId, item.id, data.tags);
+    await syncItemCollections(tx, item.id, ownedCollectionIds);
 
     return item;
   });
