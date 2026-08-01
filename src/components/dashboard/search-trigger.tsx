@@ -10,7 +10,7 @@ export function SearchTrigger() {
     <button
       type="button"
       onClick={open}
-      className="group relative w-full max-w-md text-left"
+      className="group relative w-full max-w-md cursor-pointer text-left"
     >
       <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <span className="flex h-9 w-full items-center rounded-md border border-input bg-background/50 pl-9 pr-3 text-sm text-muted-foreground shadow-sm transition-colors group-hover:bg-background">

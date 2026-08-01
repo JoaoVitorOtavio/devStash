@@ -8,6 +8,13 @@ Not Started
 ## Notes
 
 ## History
+- 2026-08-01: Completed Missing Cursor Pointer Audit:
+  - Root cause: Tailwind v4's preflight resets `button { cursor: default }`, and several shadcn/Radix primitives (`select.tsx`, `dropdown-menu.tsx`) explicitly set `cursor-default` on their interactive sub-parts — so most `<Button>`s and menu/select items across the app showed a plain arrow cursor instead of a pointer.
+  - Fixed at the primitive level (cascades to nearly every usage app-wide): `button.tsx` (`buttonVariants` base + `disabled:cursor-not-allowed`), `select.tsx` (`SelectTrigger`, `SelectItem`, scroll buttons), `tabs.tsx` (`TabsTrigger`), `dropdown-menu.tsx` (`SubTrigger`, `Item`, `CheckboxItem`, `RadioItem`), `dialog.tsx`/`sheet.tsx` (close "X" buttons), `sidebar.tsx` (`sidebarMenuButtonVariants`, `SidebarGroupAction`, `SidebarMenuAction`).
+  - Fixed directly on the handful of raw `<button>` elements that bypass those primitives: `search-trigger.tsx`, and the "View all" buttons in `pinned-items.tsx`/`recent-items.tsx`. `pagination-controls.tsx` needed no direct edit since it already composes `buttonVariants(...)`.
+  - Deliberately left `SidebarRail`'s resize handle alone — it has an intentional `w-resize`/`e-resize` cursor (not a plain pointer) and is currently force-hidden via inline style, so it's low-priority/likely dead code.
+  - Scan performed via the `Explore` subagent across all of `src/components/ui`, `dashboard`, `profile`, `auth`, and `homepage` to enumerate every clickable element missing a pointer cursor before fixing.
+  - `npm run build` clean, `npm test` (98 tests) passing unchanged. Verified end-to-end in the browser via Playwright MCP: on `/dashboard`, 42 of 42 non-disabled `<button>`s now report `cursor: pointer` except the intentional resize handle; confirmed `cursor: pointer` via computed style on the Select trigger (`/settings`) and the item drawer's Sheet close button (`/items/snippet`).
 - 2026-08-01: Completed Actions Duplication Refactor:
   - Added `requireUserId()` helper (`src/server/auth-utils.ts`) to replace the repeated `const session = await auth(); if (!session?.user?.id) return {success:false,error:"Unauthorized"}` boilerplate found 8x across `src/actions/items.ts`, `editor-preferences.ts`, and `profile.ts`.
   - Extracted a shared `itemFieldsSchema` object (description/content/url/language/tags/collectionIds) in `src/actions/items.ts`, spread into both `createItemSchema` and `updateItemSchema` instead of duplicating the same Zod chains twice.

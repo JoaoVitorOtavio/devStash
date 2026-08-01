@@ -81,7 +81,7 @@ export function RecentItems({ items }: RecentItemsProps) {
           Recent Items
         </h3>
         {items.length > 0 && (
-          <button className="text-sm text-muted-foreground hover:text-primary flex items-center">
+          <button className="text-sm text-muted-foreground hover:text-primary flex items-center cursor-pointer">
             View all <ChevronRight className="h-4 w-4 ml-1" />
           </button>
         )}
